@@ -2,6 +2,17 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Course {
+  id: string;
+  name: string;
+  duration: string;
+  fee: string;
+  center: "rajasthan" | "centerexam" | "other";
+  description?: string;
+}
 
 interface CourseSelectionProps {
   center: string;
@@ -11,24 +22,6 @@ interface CourseSelectionProps {
   errors: Record<string, string>;
 }
 
-const rajasthanCourses = [
-  { id: "rs-cfa", name: "Computer Fundamentals & Applications", duration: "6 Months", fee: "₹5,000" },
-  { id: "rs-dca", name: "Diploma in Computer Applications", duration: "1 Year", fee: "₹12,000" },
-  { id: "rs-pgdca", name: "PG Diploma in Computer Applications", duration: "1 Year", fee: "₹18,000" },
-  { id: "rs-tally", name: "Tally & Accounting", duration: "3 Months", fee: "₹4,000" },
-  { id: "rs-web", name: "Web Development", duration: "6 Months", fee: "₹8,000" },
-  { id: "rs-python", name: "Python Programming", duration: "4 Months", fee: "₹6,000" },
-];
-
-const otherCourses = [
-  { id: "ot-bca", name: "Bachelor in Computer Applications", duration: "3 Years", fee: "₹45,000/year" },
-  { id: "ot-mca", name: "Master in Computer Applications", duration: "2 Years", fee: "₹55,000/year" },
-  { id: "ot-data", name: "Data Science & Analytics", duration: "1 Year", fee: "₹25,000" },
-  { id: "ot-ai", name: "Artificial Intelligence", duration: "1 Year", fee: "₹30,000" },
-  { id: "ot-cyber", name: "Cyber Security", duration: "6 Months", fee: "₹15,000" },
-  { id: "ot-cloud", name: "Cloud Computing", duration: "6 Months", fee: "₹12,000" },
-];
-
 const CourseSelection = ({
   center,
   selectedCourses,
@@ -36,7 +29,36 @@ const CourseSelection = ({
   onCoursesChange,
   errors,
 }: CourseSelectionProps) => {
-  const courses = center === "rajasthan" ? rajasthanCourses : center === "other" ? otherCourses : [];
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (center) {
+      loadCourses();
+    }
+  }, [center]);
+
+  const loadCourses = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('center', center)
+        .order('name');
+
+      if (error) {
+        console.error('Error loading courses:', error);
+        return;
+      }
+
+      setCourses(data || []);
+    } catch (error) {
+      console.error('Error loading courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleCourse = (courseId: string) => {
     if (selectedCourses.includes(courseId)) {
@@ -54,7 +76,7 @@ const CourseSelection = ({
         <RadioGroup
           value={center}
           onValueChange={onCenterChange}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4"
         >
           <label
             htmlFor="rajasthan"
@@ -72,6 +94,26 @@ const CourseSelection = ({
               <div>
                 <p className="font-medium text-card-foreground">Rajasthan Center</p>
                 <p className="text-sm text-muted-foreground">Jaipur, Rajasthan</p>
+              </div>
+            </div>
+          </label>
+          
+          <label
+            htmlFor="centerexam"
+            className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+              center === "centerexam"
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+            }`}
+          >
+            <RadioGroupItem value="centerexam" id="centerexam" />
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <MapPin className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-medium text-card-foreground">Center Exam</p>
+                <p className="text-sm text-muted-foreground">Exam Based Courses</p>
               </div>
             </div>
           </label>
@@ -109,41 +151,57 @@ const CourseSelection = ({
             </span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {courses.map((course) => {
-              const isSelected = selectedCourses.includes(course.id);
-              return (
-                <Card
-                  key={course.id}
-                  className={`cursor-pointer transition-all hover:shadow-md ${
-                    isSelected ? "ring-2 ring-primary bg-primary/5" : ""
-                  }`}
-                  onClick={() => toggleCourse(course.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-card-foreground mb-1">{course.name}</h4>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{course.duration}</span>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading courses...</p>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No courses available for this center.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {courses.map((course) => {
+                const isSelected = selectedCourses.includes(course.id);
+                return (
+                  <Card
+                    key={course.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      isSelected ? "ring-2 ring-primary bg-primary/5" : ""
+                    }`}
+                    onClick={() => toggleCourse(course.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-medium text-card-foreground mb-1">{course.name}</h4>
+                          {course.description && (
+                            <p className="text-sm text-muted-foreground">{course.description}</p>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{course.duration}</span>
                           <span className="font-medium text-primary">{course.fee}</span>
                         </div>
+                        
+                        <div
+                          className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ml-auto ${
+                            isSelected
+                              ? "bg-primary border-primary text-primary-foreground"
+                              : "border-muted-foreground"
+                          }`}
+                        >
+                          {isSelected && <Check className="h-4 w-4" />}
+                        </div>
                       </div>
-                      <div
-                        className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isSelected
-                            ? "bg-primary border-primary text-primary-foreground"
-                            : "border-muted-foreground"
-                        }`}
-                      >
-                        {isSelected && <Check className="h-4 w-4" />}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
           
           {errors.courses && (
             <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">

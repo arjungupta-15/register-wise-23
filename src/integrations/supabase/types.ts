@@ -7,14 +7,149 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_users: {
+        Row: {
+          id: string
+          email: string
+          password_hash: string
+          name: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          password_hash: string
+          name: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          password_hash?: string
+          name?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      courses: {
+        Row: {
+          id: string
+          name: string
+          duration: string
+          fee: string
+          center: 'rajasthan' | 'centerexam' | 'other'
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          duration: string
+          fee: string
+          center: 'rajasthan' | 'centerexam' | 'other'
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          duration?: string
+          fee?: string
+          center?: 'rajasthan' | 'centerexam' | 'other'
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      students: {
+        Row: {
+          id: string
+          name: string
+          email: string | null
+          mobile: string | null
+          father_name: string
+          mother_name: string
+          address: string
+          eligibility: string
+          obtained_marks: number | null
+          total_marks: number | null
+          percentage: number | null
+          aadhaar: string
+          caste: 'general' | 'obc' | 'sc' | 'st'
+          gender: 'male' | 'female'
+          center: 'rajasthan' | 'centerexam' | 'other'
+          status: 'pending' | 'approved' | 'rejected'
+          payment_status: 'pending' | 'paid'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email?: string | null
+          mobile?: string | null
+          father_name: string
+          mother_name: string
+          address: string
+          eligibility: string
+          obtained_marks?: number | null
+          total_marks?: number | null
+          aadhaar: string
+          caste: 'general' | 'obc' | 'sc' | 'st'
+          gender: 'male' | 'female'
+          center: 'rajasthan' | 'centerexam' | 'other'
+          status?: 'pending' | 'approved' | 'rejected'
+          payment_status?: 'pending' | 'paid'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string | null
+          mobile?: string | null
+          father_name?: string
+          mother_name?: string
+          address?: string
+          eligibility?: string
+          obtained_marks?: number | null
+          total_marks?: number | null
+          aadhaar?: string
+          caste?: 'general' | 'obc' | 'sc' | 'st'
+          gender?: 'male' | 'female'
+          center?: 'rajasthan' | 'centerexam' | 'other'
+          status?: 'pending' | 'approved' | 'rejected'
+          payment_status?: 'pending' | 'paid'
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      student_courses: {
+        Row: {
+          id: string
+          student_id: string
+          course_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          course_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          course_id?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

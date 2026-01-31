@@ -6,26 +6,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Eye, Download } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface Student {
-  id: number;
+  id: string;
   name: string;
-  email: string;
-  mobile: string;
-  fatherName: string;
-  motherName: string;
+  email: string | null;
+  mobile: string | null;
+  father_name: string;
+  mother_name: string;
   address: string;
   eligibility: string;
+  obtained_marks: number | null;
+  total_marks: number | null;
+  percentage: number | null;
   aadhaar: string;
-  caste: string;
-  center: string;
-  selectedCourses: string[];
-  registeredAt: string;
+  caste: 'general' | 'obc' | 'sc' | 'st';
+  gender: 'male' | 'female';
+  center: 'rajasthan' | 'centerexam' | 'other';
+  status: 'pending' | 'approved' | 'rejected';
+  payment_status: 'pending' | 'paid';
+  created_at: string;
+  courses?: { id: string; name: string }[];
 }
 
 const AdminStudents = () => {
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEligibility, setFilterEligibility] = useState("");
   const [filterCaste, setFilterCaste] = useState("");
@@ -37,9 +46,55 @@ const AdminStudents = () => {
       return;
     }
     
-    const storedStudents = JSON.parse(localStorage.getItem("registeredStudents") || "[]");
-    setStudents(storedStudents);
+    loadStudents();
   }, [navigate]);
+
+  const loadStudents = async () => {
+    setLoading(true);
+    try {
+      // Get students with their courses
+      const { data: studentsData, error: studentsError } = await supabase
+        .from('students')
+        .select(`
+          *,
+          student_courses (
+            course_id,
+            courses (
+              id,
+              name
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (studentsError) {
+        console.error('Error loading students:', studentsError);
+        toast({
+          title: "Error",
+          description: "Failed to load students",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Transform the data to include courses array
+      const transformedStudents = studentsData?.map(student => ({
+        ...student,
+        courses: student.student_courses?.map(sc => sc.courses).filter(Boolean) || []
+      })) || [];
+
+      setStudents(transformedStudents);
+    } catch (error) {
+      console.error('Error loading students:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load students",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch = 
@@ -53,22 +108,60 @@ const AdminStudents = () => {
     return matchesSearch && matchesEligibility && matchesCaste;
   });
 
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case "approved": return "bg-green-100 text-green-800";
+      case "rejected": return "bg-red-100 text-red-800";
+      default: return "bg-yellow-100 text-yellow-800";
+    }
+  };
+
+  const getStatusLabel = (status?: string) => {
+    switch (status) {
+      case "approved": return "Approved";
+      case "rejected": return "Rejected";
+      default: return "Pending";
+    }
+  };
+
   const getCasteColor = (caste: string) => {
     switch (caste) {
       case "general": return "bg-blue-100 text-blue-800";
       case "obc": return "bg-green-100 text-green-800";
       case "sc": return "bg-purple-100 text-purple-800";
+      case "st": return "bg-orange-100 text-orange-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getEligibilityLabel = (eligibility: string) => {
-    switch (eligibility) {
-      case "10th": return "10th Pass";
-      case "12th": return "12th Pass";
-      case "graduation": return "Graduation";
-      default: return eligibility;
-    }
+    const eligibilityMap: Record<string, string> = {
+      "10th": "10th Pass",
+      "12th": "12th Pass", 
+      "diploma": "Diploma",
+      "ba": "BA",
+      "bsc": "BSc",
+      "bcom": "BCom",
+      "bba": "BBA",
+      "btech": "BTech",
+      "be": "BE",
+      "bca": "BCA",
+      "llb": "LLB",
+      "bds": "BDS",
+      "mbbs": "MBBS",
+      "bpharm": "B.Pharm",
+      "ma": "MA",
+      "msc": "MSc",
+      "mcom": "MCom",
+      "mba": "MBA",
+      "mtech": "MTech",
+      "me": "ME",
+      "mca": "MCA",
+      "llm": "LLM",
+      "phd": "PhD",
+      "other": "Other"
+    };
+    return eligibilityMap[eligibility] || eligibility;
   };
 
   return (
@@ -106,7 +199,23 @@ const AdminStudents = () => {
                 <option value="">All Eligibility</option>
                 <option value="10th">10th Pass</option>
                 <option value="12th">12th Pass</option>
-                <option value="graduation">Graduation</option>
+                <option value="diploma">Diploma</option>
+                <option value="ba">BA</option>
+                <option value="bsc">BSc</option>
+                <option value="bcom">BCom</option>
+                <option value="bba">BBA</option>
+                <option value="btech">BTech</option>
+                <option value="be">BE</option>
+                <option value="bca">BCA</option>
+                <option value="ma">MA</option>
+                <option value="msc">MSc</option>
+                <option value="mcom">MCom</option>
+                <option value="mba">MBA</option>
+                <option value="mtech">MTech</option>
+                <option value="me">ME</option>
+                <option value="mca">MCA</option>
+                <option value="phd">PhD</option>
+                <option value="other">Other</option>
               </select>
               <select
                 value={filterCaste}
@@ -117,6 +226,7 @@ const AdminStudents = () => {
                 <option value="general">General</option>
                 <option value="obc">OBC</option>
                 <option value="sc">SC</option>
+                <option value="st">ST</option>
               </select>
             </div>
           </CardContent>
@@ -130,7 +240,12 @@ const AdminStudents = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredStudents.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading students...</p>
+              </div>
+            ) : filteredStudents.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 {students.length === 0 
                   ? "No students registered yet."
@@ -143,8 +258,8 @@ const AdminStudents = () => {
                   <thead>
                     <tr className="border-b bg-muted/50">
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Email</th>
-                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Mobile</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Contact</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Eligibility</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Courses</th>
@@ -155,8 +270,17 @@ const AdminStudents = () => {
                     {filteredStudents.map((student) => (
                       <tr key={student.id} className="border-b last:border-0 hover:bg-muted/50">
                         <td className="py-3 px-4 font-medium text-card-foreground">{student.name}</td>
-                        <td className="py-3 px-4 text-muted-foreground">{student.email}</td>
-                        <td className="py-3 px-4 text-muted-foreground">{student.mobile}</td>
+                        <td className="py-3 px-4 text-muted-foreground">
+                          <div className="text-sm">
+                            {student.email && <div>{student.email}</div>}
+                            {student.mobile && <div>{student.mobile}</div>}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge className={getStatusColor(student.status)}>
+                            {getStatusLabel(student.status)}
+                          </Badge>
+                        </td>
                         <td className="py-3 px-4">
                           <Badge variant="secondary">
                             {getEligibilityLabel(student.eligibility)}
@@ -168,7 +292,7 @@ const AdminStudents = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <Badge variant="outline">{student.selectedCourses?.length || 0} courses</Badge>
+                          <Badge variant="outline">{student.courses?.length || 0} courses</Badge>
                         </td>
                         <td className="py-3 px-4">
                           <Button 

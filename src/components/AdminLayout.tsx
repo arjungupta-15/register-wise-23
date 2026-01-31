@@ -7,7 +7,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  GraduationCap
+  GraduationCap,
+  BookOpen
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -18,6 +19,7 @@ interface AdminLayoutProps {
 const navItems = [
   { title: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
   { title: "Students", path: "/admin/students", icon: Users },
+  { title: "Courses", path: "/admin/courses", icon: BookOpen },
 ];
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {

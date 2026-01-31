@@ -7,6 +7,17 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Top Admin Link */}
+      <div className="absolute top-4 right-4 z-10">
+        <Button 
+          variant="ghost" 
+          className="text-white hover:bg-white/10"
+          onClick={() => navigate("/admin/login")}
+        >
+          Admin
+        </Button>
+      </div>
+
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-secondary">
         <div className="absolute inset-0 opacity-20">
@@ -33,18 +44,25 @@ const Landing = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-8 py-6 text-lg shadow-lg"
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-6 text-lg shadow-lg"
                 onClick={() => navigate("/register")}
               >
-                Get Started
+                New Registration
               </Button>
               <Button 
                 size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10 font-semibold px-8 py-6 text-lg"
-                onClick={() => navigate("/admin/login")}
+                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-6 py-6 text-lg shadow-lg transition-all"
+                onClick={() => navigate("/student/login")}
               >
-                Admin Login
+                Student Login
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="bg-white/10 border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-6 py-6 text-lg shadow-lg transition-all backdrop-blur-sm"
+                onClick={() => navigate("/student/login")}
+              >
+                Check Status
               </Button>
             </div>
           </div>

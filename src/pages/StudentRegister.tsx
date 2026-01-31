@@ -10,8 +10,7 @@ import { toast } from "@/hooks/use-toast";
 const StudentRegister = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: "",
-    mobile: "",
+    emailOrMobile: "",
     password: "",
     confirmPassword: ""
   });
@@ -20,16 +19,17 @@ const StudentRegister = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-    }
-    
-    if (!formData.mobile) {
-      newErrors.mobile = "Mobile number is required";
-    } else if (!/^\d{10}$/.test(formData.mobile)) {
-      newErrors.mobile = "Please enter a valid 10-digit mobile number";
+    if (!formData.emailOrMobile) {
+      newErrors.emailOrMobile = "Email or Mobile number is required";
+    } else {
+      // Check if it's email format
+      const isEmail = /\S+@\S+\.\S+/.test(formData.emailOrMobile);
+      // Check if it's mobile format (10 digits)
+      const isMobile = /^\d{10}$/.test(formData.emailOrMobile);
+      
+      if (!isEmail && !isMobile) {
+        newErrors.emailOrMobile = "Please enter a valid email or 10-digit mobile number";
+      }
     }
     
     if (!formData.password) {
@@ -50,7 +50,11 @@ const StudentRegister = () => {
     e.preventDefault();
     if (validateForm()) {
       // Store registration data in localStorage for demo
-      localStorage.setItem("studentAuth", JSON.stringify({ email: formData.email, mobile: formData.mobile }));
+      localStorage.setItem("studentAuth", JSON.stringify({ 
+        emailOrMobile: formData.emailOrMobile,
+        studentId: Date.now(),
+        loginTime: new Date().toISOString()
+      }));
       toast({
         title: "Registration Successful",
         description: "Please complete your details to finish registration.",
@@ -83,29 +87,16 @@ const StudentRegister = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="emailOrMobile">Email or Mobile Number</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="student@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className={errors.email ? "border-destructive" : ""}
+                  id="emailOrMobile"
+                  type="text"
+                  placeholder="student@example.com or 9876543210"
+                  value={formData.emailOrMobile}
+                  onChange={(e) => setFormData({ ...formData, emailOrMobile: e.target.value })}
+                  className={errors.emailOrMobile ? "border-destructive" : ""}
                 />
-                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="mobile">Mobile Number</Label>
-                <Input
-                  id="mobile"
-                  type="tel"
-                  placeholder="9876543210"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-                  className={errors.mobile ? "border-destructive" : ""}
-                />
-                {errors.mobile && <p className="text-sm text-destructive">{errors.mobile}</p>}
+                {errors.emailOrMobile && <p className="text-sm text-destructive">{errors.emailOrMobile}</p>}
               </div>
               
               <div className="space-y-2">
@@ -140,7 +131,7 @@ const StudentRegister = () => {
               
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Button variant="link" className="p-0 h-auto" onClick={() => navigate("/login")}>
+                <Button variant="link" className="p-0 h-auto" onClick={() => navigate("/student/login")}>
                   Login here
                 </Button>
               </p>
