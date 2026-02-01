@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GraduationCap, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const StudentLogin = () => {
   const navigate = useNavigate();
@@ -40,46 +41,86 @@ const StudentLogin = () => {
     setIsLoading(true);
     
     try {
-      // Get all registered students
-      const registeredStudents = JSON.parse(localStorage.getItem("registeredStudents") || "[]");
+      // First try to find in Supabase
+      let students = null;
+      let error = null;
       
-      // Find student by email/mobile and password
-      const student = registeredStudents.find((s: any) => {
-        const matchesEmailOrMobile = 
-          s.emailOrMobile === formData.emailOrMobile ||
-          s.email === formData.emailOrMobile ||
-          s.mobile === formData.emailOrMobile;
+      // Try both email and mobile search patterns
+      const searchQueries = [
+        `email.eq.${formData.emailOrMobile}`,
+        `mobile.eq.${formData.emailOrMobile}`
+      ];
+      
+      for (const query of searchQueries) {
+        const result = await supabase
+          .from('students')
+          .select('*')
+          .or(query)
+          .limit(1);
         
-        // For demo, we'll use a simple password check
-        // In real app, passwords should be hashed
-        return matchesEmailOrMobile;
-      });
+        if (!result.error && result.data && result.data.length > 0) {
+          students = result.data;
+          break;
+        }
+      }
       
-      if (!student) {
-        setErrors({ auth: "No account found with this email/mobile number. Please register first." });
+      console.log('Supabase search result:', students);
+      
+      if (!students || students.length === 0) {
+        console.log('No students found in Supabase, checking localStorage...');
+        // Fallback to localStorage if Supabase fails
+        const registeredStudents = JSON.parse(localStorage.getItem("registeredStudents") || "[]");
+        const student = registeredStudents.find((s: any) => {
+          const matchesEmailOrMobile = 
+            s.emailOrMobile === formData.emailOrMobile ||
+            s.email === formData.emailOrMobile ||
+            s.mobile === formData.emailOrMobile;
+          return matchesEmailOrMobile;
+        });
+        
+        if (!student) {
+          setErrors({ auth: "No account found with this email/mobile number. Please register first." });
+          setIsLoading(false);
+          return;
+        }
+        
+        // Store login session for localStorage student
+        localStorage.setItem("studentAuth", JSON.stringify({ 
+          emailOrMobile: formData.emailOrMobile,
+          studentId: student.id,
+          loginTime: new Date().toISOString()
+        }));
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back! Redirecting to your status page.",
+        });
+        
+        navigate("/student/status");
         setIsLoading(false);
         return;
       }
       
-      // For demo purposes, we'll accept any password for registered users
-      // In production, you'd verify the actual password
+      const student = students[0];
       
-      // Store login session
+      // Store login session for Supabase student
       localStorage.setItem("studentAuth", JSON.stringify({ 
         emailOrMobile: formData.emailOrMobile,
         studentId: student.id,
         loginTime: new Date().toISOString()
       }));
       
+      localStorage.setItem("currentStudentId", student.id);
+      
       toast({
         title: "Login Successful",
         description: "Welcome back! Redirecting to your status page.",
       });
       
-      // Redirect to status page
       navigate("/student/status");
       
     } catch (error) {
+      console.error('Login error:', error);
       setErrors({ auth: "Login failed. Please try again." });
     } finally {
       setIsLoading(false);

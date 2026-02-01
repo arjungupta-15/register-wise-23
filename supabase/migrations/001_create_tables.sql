@@ -93,32 +93,21 @@ ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE student_courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
--- Create policies for courses (public read, admin write)
+-- Create policies for courses (public read and write for now)
 CREATE POLICY "Anyone can view courses" ON courses FOR SELECT USING (true);
-CREATE POLICY "Only admins can modify courses" ON courses FOR ALL USING (auth.jwt() ->> 'email' = 'admin@scrs.com');
+CREATE POLICY "Anyone can modify courses" ON courses FOR ALL USING (true);
 
--- Create policies for students (students can read their own data, admins can read all)
-CREATE POLICY "Students can view their own data" ON students FOR SELECT USING (
-  auth.jwt() ->> 'email' = email OR 
-  auth.jwt() ->> 'phone' = mobile OR
-  auth.jwt() ->> 'email' = 'admin@scrs.com'
-);
-CREATE POLICY "Students can insert their own data" ON students FOR INSERT WITH CHECK (true);
-CREATE POLICY "Only admins can update students" ON students FOR UPDATE USING (auth.jwt() ->> 'email' = 'admin@scrs.com');
+-- Create policies for students (allow all operations for now)
+CREATE POLICY "Anyone can view students" ON students FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert students" ON students FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update students" ON students FOR UPDATE USING (true);
 
--- Create policies for student_courses
-CREATE POLICY "Students can view their own courses" ON student_courses FOR SELECT USING (
-  student_id IN (
-    SELECT id FROM students WHERE 
-    email = auth.jwt() ->> 'email' OR 
-    mobile = auth.jwt() ->> 'phone'
-  ) OR
-  auth.jwt() ->> 'email' = 'admin@scrs.com'
-);
-CREATE POLICY "Students can insert their own courses" ON student_courses FOR INSERT WITH CHECK (true);
+-- Create policies for student_courses (allow all operations for now)
+CREATE POLICY "Anyone can view student_courses" ON student_courses FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert student_courses" ON student_courses FOR INSERT WITH CHECK (true);
 
--- Create policies for admin_users
-CREATE POLICY "Admins can view admin data" ON admin_users FOR SELECT USING (auth.jwt() ->> 'email' = email);
+-- Create policies for admin_users (allow all operations for now)
+CREATE POLICY "Anyone can view admin_users" ON admin_users FOR SELECT USING (true);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()

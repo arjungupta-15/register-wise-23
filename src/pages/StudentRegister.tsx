@@ -49,12 +49,20 @@ const StudentRegister = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
+      // Determine if it's email or mobile
+      const isEmail = /\S+@\S+\.\S+/.test(formData.emailOrMobile);
+      
       // Store registration data in localStorage for demo
-      localStorage.setItem("studentAuth", JSON.stringify({ 
+      const authData = {
         emailOrMobile: formData.emailOrMobile,
+        email: isEmail ? formData.emailOrMobile : null,
+        mobile: !isEmail ? formData.emailOrMobile : null,
         studentId: Date.now(),
         loginTime: new Date().toISOString()
-      }));
+      };
+      
+      localStorage.setItem("studentAuth", JSON.stringify(authData));
+      
       toast({
         title: "Registration Successful",
         description: "Please complete your details to finish registration.",

@@ -115,13 +115,33 @@ const StudentDetails = () => {
       // Get existing auth data (email/mobile)
       const existingData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
       
+      // Determine email and mobile from emailOrMobile
+      let email = null;
+      let mobile = null;
+      
+      if (existingData.emailOrMobile) {
+        const isEmail = /\S+@\S+\.\S+/.test(existingData.emailOrMobile);
+        if (isEmail) {
+          email = existingData.emailOrMobile;
+        } else {
+          mobile = existingData.emailOrMobile;
+        }
+      }
+      
+      // Also check if email/mobile are directly available
+      if (existingData.email) email = existingData.email;
+      if (existingData.mobile) mobile = existingData.mobile;
+      
+      console.log('Auth data:', existingData);
+      console.log('Email:', email, 'Mobile:', mobile);
+      
       // Insert student data (percentage is auto-calculated by database)
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .insert({
           name: formData.name,
-          email: existingData.email || null,
-          mobile: existingData.mobile || null,
+          email: email,
+          mobile: mobile,
           father_name: formData.fatherName,
           mother_name: formData.motherName,
           address: formData.address,

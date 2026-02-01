@@ -1,21 +1,69 @@
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, Users, Award } from "lucide-react";
+import { GraduationCap, BookOpen, Users, Award, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [studentName, setStudentName] = useState("");
+
+  useEffect(() => {
+    // Check if student is logged in
+    const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+    const currentStudentId = localStorage.getItem("currentStudentId");
+    
+    if (authData.emailOrMobile || currentStudentId) {
+      setIsLoggedIn(true);
+      // You could fetch student name from Supabase here if needed
+      setStudentName("Student"); // For now, just show "Student"
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("studentAuth");
+    localStorage.removeItem("currentStudentId");
+    setIsLoggedIn(false);
+    setStudentName("");
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully.",
+    });
+  };
+
+  const handleStatusCheck = () => {
+    if (isLoggedIn) {
+      navigate("/student/status");
+    } else {
+      navigate("/student/login");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Admin Link */}
-      <div className="absolute top-4 right-4 z-10">
-        <Button 
-          variant="ghost" 
-          className="text-white hover:bg-white/10"
-          onClick={() => navigate("/admin/login")}
-        >
-          Admin
-        </Button>
+      {/* Top Header */}
+      <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center">
+        <div className="text-white font-semibold">SCRS</div>
+        <div className="flex items-center gap-2">
+          {isLoggedIn && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full">
+                <User className="h-4 w-4 text-white" />
+                <span className="text-white text-sm">{studentName}</span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-white hover:bg-white/10 gap-2"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Hero Section */}
@@ -49,20 +97,22 @@ const Landing = () => {
               >
                 New Registration
               </Button>
-              <Button 
-                size="lg" 
-                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-6 py-6 text-lg shadow-lg transition-all"
-                onClick={() => navigate("/student/login")}
-              >
-                Student Login
-              </Button>
+              {!isLoggedIn && (
+                <Button 
+                  size="lg" 
+                  className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-6 py-6 text-lg shadow-lg transition-all"
+                  onClick={() => navigate("/student/login")}
+                >
+                  Student Login
+                </Button>
+              )}
               <Button 
                 size="lg" 
                 variant="outline"
                 className="bg-white/10 border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-6 py-6 text-lg shadow-lg transition-all backdrop-blur-sm"
-                onClick={() => navigate("/student/login")}
+                onClick={handleStatusCheck}
               >
-                Check Status
+                {isLoggedIn ? "View Status" : "Check Status"}
               </Button>
             </div>
           </div>
@@ -120,8 +170,17 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-white/80">© 2024 Student Course Registration System. All rights reserved.</p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-white/80 mb-4 md:mb-0">© 2024 Student Course Registration System. All rights reserved.</p>
+            <Button 
+              variant="ghost" 
+              className="text-white/80 hover:bg-white/10 hover:text-white"
+              onClick={() => navigate("/admin/login")}
+            >
+              Admin Login
+            </Button>
+          </div>
         </div>
       </footer>
     </div>
