@@ -26,10 +26,10 @@ Supabase CLI access nahi hai? No problem!
 3. **Import to Vercel**:
    - https://vercel.com/new
    - Import your GitHub repo
-   - Add environment variables:
+   - Add environment variables (use your actual Cashfree credentials):
      ```
-     CASHFREE_APP_ID=TEST10957773ed79b84bd2222f0c07ac37775901
-     CASHFREE_SECRET_KEY=cfsk_ma_test_2be9b446e849a945aecfb725b01b5b9d_7aebd3e2
+     CASHFREE_APP_ID=your_cashfree_app_id
+     CASHFREE_SECRET_KEY=your_cashfree_secret_key
      CASHFREE_MODE=sandbox
      ```
    - Click Deploy

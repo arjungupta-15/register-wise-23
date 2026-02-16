@@ -39,11 +39,11 @@ Password maangega - Supabase dashboard se database password lo.
 
 Supabase Dashboard mein jao:
 1. Settings → Edge Functions → Secrets
-2. Ye secrets add karo:
+2. Ye secrets add karo (use your actual Cashfree credentials):
 
 ```
-CASHFREE_APP_ID=TEST10957773ed79b84bd2222f0c07ac37775901
-CASHFREE_SECRET_KEY=cfsk_ma_test_2be9b446e849a945aecfb725b01b5b9d_7aebd3e2
+CASHFREE_APP_ID=your_cashfree_app_id
+CASHFREE_SECRET_KEY=your_cashfree_secret_key
 CASHFREE_MODE=sandbox
 SUPABASE_URL=https://bbcikbqmhdzktgpmqrmd.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<your_service_role_key>

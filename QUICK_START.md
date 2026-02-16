@@ -18,10 +18,10 @@ npx supabase link --project-ref bbcikbqmhdzktgpmqrmd
 
 Go to: https://supabase.com/dashboard/project/bbcikbqmhdzktgpmqrmd/settings/functions
 
-Add these secrets:
+Add these secrets (use your actual Cashfree credentials):
 ```
-CASHFREE_APP_ID = TEST10957773ed79b84bd2222f0c07ac37775901
-CASHFREE_SECRET_KEY = cfsk_ma_test_2be9b446e849a945aecfb725b01b5b9d_7aebd3e2
+CASHFREE_APP_ID = your_cashfree_app_id
+CASHFREE_SECRET_KEY = your_cashfree_secret_key
 CASHFREE_MODE = sandbox
 SUPABASE_URL = https://bbcikbqmhdzktgpmqrmd.supabase.co
 SUPABASE_SERVICE_ROLE_KEY = (Get from Settings → API → service_role key)
