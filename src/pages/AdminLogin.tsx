@@ -16,9 +16,9 @@ const AdminLogin = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fixed admin credentials for demo
-  const ADMIN_EMAIL = "admin@scrs.com";
-  const ADMIN_PASSWORD = "admin123";
+  // Admin credentials - only you know these
+  const ADMIN_EMAIL = "admin@scrs.edu.in";
+  const ADMIN_PASSWORD = "SCRS@Admin2024";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +81,7 @@ const AdminLogin = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@scrs.com"
+                  placeholder="Enter admin email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
@@ -92,7 +92,7 @@ const AdminLogin = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Enter admin password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
@@ -101,14 +101,6 @@ const AdminLogin = () => {
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
-              
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground mt-4 p-3 bg-muted rounded-lg">
-                  <strong>Demo Credentials:</strong><br />
-                  Email: admin@scrs.com<br />
-                  Password: admin123
-                </p>
-              </div>
             </form>
           </CardContent>
         </Card>

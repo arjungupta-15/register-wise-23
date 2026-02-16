@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GraduationCap, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const StudentRegister = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    emailOrMobile: "",
+    mobile: "",
     password: "",
     confirmPassword: ""
   });
@@ -19,17 +20,10 @@ const StudentRegister = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.emailOrMobile) {
-      newErrors.emailOrMobile = "Email or Mobile number is required";
-    } else {
-      // Check if it's email format
-      const isEmail = /\S+@\S+\.\S+/.test(formData.emailOrMobile);
-      // Check if it's mobile format (10 digits)
-      const isMobile = /^\d{10}$/.test(formData.emailOrMobile);
-      
-      if (!isEmail && !isMobile) {
-        newErrors.emailOrMobile = "Please enter a valid email or 10-digit mobile number";
-      }
+    if (!formData.mobile) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!/^\d{10}$/.test(formData.mobile)) {
+      newErrors.mobile = "Please enter a valid 10-digit mobile number";
     }
     
     if (!formData.password) {
@@ -46,17 +40,46 @@ const StudentRegister = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Determine if it's email or mobile
-      const isEmail = /\S+@\S+\.\S+/.test(formData.emailOrMobile);
+    if (!validateForm()) return;
+    
+    try {
+      // Check if mobile number already exists in Supabase
+      const { data: existingStudent, error: checkError } = await supabase
+        .from('students')
+        .select('mobile')
+        .eq('mobile', formData.mobile)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, which is what we want
+        console.error('Error checking mobile number:', checkError);
+        toast({
+          title: "Error",
+          description: "Failed to verify mobile number. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (existingStudent) {
+        setErrors({ mobile: "This mobile number is already registered. Please use a different number or login instead." });
+        return;
+      }
+
+      // Also check localStorage for fallback
+      const registeredStudents = JSON.parse(localStorage.getItem("registeredStudents") || "[]");
+      const localExists = registeredStudents.find((s: any) => s.mobile === formData.mobile);
       
+      if (localExists) {
+        setErrors({ mobile: "This mobile number is already registered. Please use a different number or login instead." });
+        return;
+      }
+
       // Store registration data in localStorage for demo
       const authData = {
-        emailOrMobile: formData.emailOrMobile,
-        email: isEmail ? formData.emailOrMobile : null,
-        mobile: !isEmail ? formData.emailOrMobile : null,
+        mobile: formData.mobile,
         studentId: Date.now(),
         loginTime: new Date().toISOString()
       };
@@ -68,6 +91,13 @@ const StudentRegister = () => {
         description: "Please complete your details to finish registration.",
       });
       navigate("/student/details");
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -95,16 +125,17 @@ const StudentRegister = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="emailOrMobile">Email or Mobile Number</Label>
+                <Label htmlFor="mobile">Mobile Number</Label>
                 <Input
-                  id="emailOrMobile"
-                  type="text"
-                  placeholder="student@example.com or 9876543210"
-                  value={formData.emailOrMobile}
-                  onChange={(e) => setFormData({ ...formData, emailOrMobile: e.target.value })}
-                  className={errors.emailOrMobile ? "border-destructive" : ""}
+                  id="mobile"
+                  type="tel"
+                  placeholder="9876543210"
+                  value={formData.mobile}
+                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                  className={errors.mobile ? "border-destructive" : ""}
+                  maxLength={10}
                 />
-                {errors.emailOrMobile && <p className="text-sm text-destructive">{errors.emailOrMobile}</p>}
+                {errors.mobile && <p className="text-sm text-destructive">{errors.mobile}</p>}
               </div>
               
               <div className="space-y-2">

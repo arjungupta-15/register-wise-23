@@ -85,7 +85,7 @@ const AdminCourses = () => {
 
   const insertDefaultCourses = async () => {
     const defaultCourses = [
-      // Rajasthan Center Courses
+      // Rajasthan Exams Courses
       { id: "rs-cfa", name: "Computer Fundamentals & Applications", duration: "6 Months", fee: "₹5,000", center: "rajasthan", description: "Basic computer skills and applications" },
       { id: "rs-dca", name: "Diploma in Computer Applications", duration: "1 Year", fee: "₹12,000", center: "rajasthan", description: "Comprehensive computer applications course" },
       { id: "rs-pgdca", name: "PG Diploma in Computer Applications", duration: "1 Year", fee: "₹18,000", center: "rajasthan", description: "Advanced computer applications for graduates" },
@@ -93,7 +93,7 @@ const AdminCourses = () => {
       { id: "rs-web", name: "Web Development", duration: "6 Months", fee: "₹8,000", center: "rajasthan", description: "HTML, CSS, JavaScript web development" },
       { id: "rs-python", name: "Python Programming", duration: "4 Months", fee: "₹6,000", center: "rajasthan", description: "Python programming language course" },
       
-      // Center Exam Courses
+      // Center Exams Courses
       { id: "ce-ccc", name: "CCC (Course on Computer Concepts)", duration: "3 Months", fee: "₹3,500", center: "centerexam", description: "Government certified computer course" },
       { id: "ce-bcc", name: "BCC (Basic Computer Course)", duration: "2 Months", fee: "₹2,500", center: "centerexam", description: "Basic computer literacy course" },
       { id: "ce-acc", name: "ACC (Advanced Computer Course)", duration: "4 Months", fee: "₹5,500", center: "centerexam", description: "Advanced computer skills certification" },
@@ -101,7 +101,7 @@ const AdminCourses = () => {
       { id: "ce-doeacc", name: "DOEACC Courses", duration: "1 Year", fee: "₹15,000", center: "centerexam", description: "Department of Electronics & Accreditation courses" },
       { id: "ce-typing", name: "Typing & Stenography", duration: "3 Months", fee: "₹3,000", center: "centerexam", description: "Professional typing and stenography skills" },
       
-      // Other Center Courses
+      // Other State Exams Courses
       { id: "ot-bca", name: "Bachelor in Computer Applications", duration: "3 Years", fee: "₹45,000/year", center: "other", description: "Undergraduate degree in computer applications" },
       { id: "ot-mca", name: "Master in Computer Applications", duration: "2 Years", fee: "₹55,000/year", center: "other", description: "Postgraduate degree in computer applications" },
       { id: "ot-data", name: "Data Science & Analytics", duration: "1 Year", fee: "₹25,000", center: "other", description: "Data analysis and machine learning course" },
@@ -281,9 +281,9 @@ const AdminCourses = () => {
 
   const getCenterLabel = (center: string) => {
     switch (center) {
-      case "rajasthan": return "Rajasthan Center";
-      case "centerexam": return "Center Exam";
-      case "other": return "Other Center";
+      case "rajasthan": return "Rajasthan Exams";
+      case "centerexam": return "Center Exams";
+      case "other": return "Other State Exams";
       default: return center;
     }
   };
@@ -344,9 +344,9 @@ const AdminCourses = () => {
                       <SelectValue placeholder="Select center" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="rajasthan">Rajasthan Center</SelectItem>
-                      <SelectItem value="centerexam">Center Exam</SelectItem>
-                      <SelectItem value="other">Other Center</SelectItem>
+                      <SelectItem value="rajasthan">Rajasthan Exams</SelectItem>
+                      <SelectItem value="centerexam">Center Exams</SelectItem>
+                      <SelectItem value="other">Other State Exams</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -422,7 +422,7 @@ const AdminCourses = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">{coursesByCenter.centerexam.length}</p>
-                  <p className="text-sm text-muted-foreground">Center Exam Courses</p>
+                  <p className="text-sm text-muted-foreground">Center Exams Courses</p>
                 </div>
               </div>
             </CardContent>

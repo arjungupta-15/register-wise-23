@@ -150,6 +150,53 @@ export type Database = {
           created_at?: string
         }
       }
+      payments: {
+        Row: {
+          id: string
+          order_id: string
+          student_id: string
+          amount: number
+          payment_type: 'onetime' | 'installment'
+          installment_number: number | null
+          status: 'pending' | 'success' | 'failed' | 'refunded'
+          payment_session_id: string | null
+          payment_method: string | null
+          transaction_id: string | null
+          payment_time: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          student_id: string
+          amount: number
+          payment_type: 'onetime' | 'installment'
+          installment_number?: number | null
+          status?: 'pending' | 'success' | 'failed' | 'refunded'
+          payment_session_id?: string | null
+          payment_method?: string | null
+          transaction_id?: string | null
+          payment_time?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          student_id?: string
+          amount?: number
+          payment_type?: 'onetime' | 'installment'
+          installment_number?: number | null
+          status?: 'pending' | 'success' | 'failed' | 'refunded'
+          payment_session_id?: string | null
+          payment_method?: string | null
+          transaction_id?: string | null
+          payment_time?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

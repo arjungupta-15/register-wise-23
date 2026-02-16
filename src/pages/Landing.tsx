@@ -14,7 +14,7 @@ const Landing = () => {
     const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
     const currentStudentId = localStorage.getItem("currentStudentId");
     
-    if (authData.emailOrMobile || currentStudentId) {
+    if (authData.mobile || currentStudentId) {
       setIsLoggedIn(true);
       // You could fetch student name from Supabase here if needed
       setStudentName("Student"); // For now, just show "Student"
@@ -44,7 +44,29 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       {/* Top Header */}
       <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center">
-        <div className="text-white font-semibold">SCRS</div>
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center p-1">
+            <img src="/TARSLOGO.JPG-removebg-preview.jpg" alt="TARS Education" className="h-full w-full object-contain rounded-full" />
+          </div>
+          <div className="text-white">
+            <div className="font-bold text-lg">
+              <span className="text-green-400">T</span>
+              <span className="text-blue-400">A</span>
+              <span className="text-purple-400">R</span>
+              <span className="text-red-400">S</span>
+              <span className="text-white"> </span>
+              <span className="text-green-400">E</span>
+              <span className="text-blue-400">d</span>
+              <span className="text-purple-400">u</span>
+              <span className="text-red-400">c</span>
+              <span className="text-green-400">a</span>
+              <span className="text-blue-400">t</span>
+              <span className="text-purple-400">i</span>
+              <span className="text-red-400">o</span>
+              <span className="text-green-400">n</span>
+            </div>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           {isLoggedIn && (
             <div className="flex items-center gap-2">
@@ -63,6 +85,14 @@ const Landing = () => {
               </Button>
             </div>
           )}
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-white hover:bg-white/10"
+            onClick={() => navigate("/contact")}
+          >
+            Contact Us
+          </Button>
         </div>
       </div>
 
@@ -76,13 +106,24 @@ const Landing = () => {
           <div className="max-w-3xl mx-auto text-center text-primary-foreground">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
               <GraduationCap className="h-5 w-5" />
-              <span className="text-sm font-medium">Welcome to SCRS</span>
+              <span className="text-sm font-medium">Welcome to TARS Education</span>
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Student Course
-              <br />
-              Registration System
+              <span className="text-green-500">T</span>
+              <span className="text-blue-500">A</span>
+              <span className="text-purple-500">R</span>
+              <span className="text-red-500">S</span>
+              <span className="text-white"> </span>
+              <span className="text-green-500">E</span>
+              <span className="text-blue-500">d</span>
+              <span className="text-purple-500">u</span>
+              <span className="text-red-500">c</span>
+              <span className="text-green-500">a</span>
+              <span className="text-blue-500">t</span>
+              <span className="text-purple-500">i</span>
+              <span className="text-red-500">o</span>
+              <span className="text-green-500">n</span>
             </h1>
             
             <p className="text-lg md:text-xl text-white/90 mb-8 max-w-xl mx-auto">
@@ -129,7 +170,7 @@ const Landing = () => {
       {/* Features Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground mb-4">Why Choose SCRS?</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-4">Why Choose TARS Education?</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Our platform makes course registration simple, fast, and efficient for students and administrators alike.
           </p>
@@ -152,7 +193,7 @@ const Landing = () => {
             </div>
             <h3 className="text-xl font-semibold mb-2 text-card-foreground">Multiple Centers</h3>
             <p className="text-muted-foreground">
-              Choose from Rajasthan Center or other centers based on your location.
+              Choose from Rajasthan Exams or other centers based on your location.
             </p>
           </div>
           
@@ -168,18 +209,74 @@ const Landing = () => {
         </div>
       </div>
 
+      {/* Gallery Section */}
+      <div className="bg-muted/30 py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Learning Environment</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Take a look at our modern facilities and learning spaces designed for your success.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+              <img 
+                src="/education.jpg" 
+                alt="education" 
+                className="w-full h-64 object-cover"
+              />
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Education</h3>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+              <img 
+                src="/Hostel.jpg" 
+                alt="Hostel" 
+                className="w-full h-64 object-cover"
+              />
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Hostel</h3>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+              <img 
+                src="/Librabry.jpg" 
+                alt="Library" 
+                className="w-full h-64 object-cover"
+              />
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Library</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-white/80 mb-4 md:mb-0">© 2024 Student Course Registration System. All rights reserved.</p>
-            <Button 
-              variant="ghost" 
-              className="text-white/80 hover:bg-white/10 hover:text-white"
-              onClick={() => navigate("/admin/login")}
-            >
-              Admin Login
-            </Button>
+            <p className="text-white/80 mb-4 md:mb-0">© 2026 Powered By <a href="https://developerwallah.org/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-blue-300 underline">Developer Wallah</a>. All rights reserved.</p>
+            <div className="flex gap-4">
+              <Button 
+                variant="ghost" 
+                className="text-white/80 hover:bg-white/10 hover:text-white"
+                onClick={() => navigate("/contact")}
+              >
+                Contact Us
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="text-white/80 hover:bg-white/10 hover:text-white"
+                onClick={() => navigate("/admin/login")}
+              >
+                Admin Login
+              </Button>
+            </div>
           </div>
         </div>
       </footer>

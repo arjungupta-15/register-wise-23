@@ -1,73 +1,100 @@
-# Welcome to your Lovable project
+# SCRS - Student Course Registration System
 
-## Project info
+A comprehensive web application for student course registration and management.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Project Overview
 
-## How can I edit this code?
+**SCRS** is a modern, responsive web application built for educational institutions to manage student course registrations efficiently. The system provides separate interfaces for students and administrators with complete registration workflow management.
 
-There are several ways of editing your application.
+## Features
 
-**Use Lovable**
+### For Students:
+- User-friendly registration process
+- Course selection from multiple centers
+- Application status tracking
+- Flexible payment options (One-time/Installments)
+- Secure login system
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### For Administrators:
+- Student application management
+- Course management (Add/Edit/Delete)
+- Approval workflow
+- Student data analytics
+- Secure admin dashboard
 
-Changes made via Lovable will be committed automatically to this repo.
+## Technology Stack
 
-**Use your preferred IDE**
+- **Frontend**: React 18 with TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Database**: Supabase (PostgreSQL)
+- **Build Tool**: Vite
+- **Authentication**: Custom implementation with localStorage
+- **Icons**: Lucide React
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn package manager
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd register-wise-23
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Set up environment variables
+```bash
+cp .env.example .env
+# Add your Supabase credentials
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Database Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Create a Supabase project
+2. Run the migration files in `/supabase/migrations/`
+3. Update the `.env` file with your Supabase credentials
 
-**Use GitHub Codespaces**
+## Admin Access
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Email: `admin@scrs.edu.in`
+- Password: `SCRS@Admin2024`
 
-## What technologies are used for this project?
+## Project Structure
 
-This project is built with:
+```
+src/
+├── components/          # Reusable UI components
+├── pages/              # Application pages
+├── hooks/              # Custom React hooks
+├── integrations/       # External service integrations
+├── lib/               # Utility functions
+└── test/              # Test files
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Contributing
 
-## How can I deploy this project?
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## License
 
-## Can I connect a custom domain to my Lovable project?
+This project is licensed under the MIT License.
 
-Yes, you can!
+## Support
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+For support and queries, contact the SCRS development team.

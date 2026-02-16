@@ -34,7 +34,6 @@ const StudentDetails = () => {
     aadhaar: "",
     caste: "",
     gender: "",
-    center: "",
     selectedCourses: [] as string[],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,7 +57,7 @@ const StudentDetails = () => {
     }
     
     if (step === 2) {
-      if (!formData.eligibility) newErrors.eligibility = "Eligibility is required";
+      if (!formData.eligibility) newErrors.eligibility = "Highest qualification is required";
       if (!formData.obtainedMarks) {
         newErrors.obtainedMarks = "Obtained marks is required";
       } else if (isNaN(Number(formData.obtainedMarks)) || Number(formData.obtainedMarks) < 0) {
@@ -82,9 +81,8 @@ const StudentDetails = () => {
     }
     
     if (step === 3) {
-      if (!formData.center) newErrors.center = "Please select a center";
-      if (formData.selectedCourses.length < 2) {
-        newErrors.courses = "Please select at least 2 courses";
+      if (formData.selectedCourses.length !== 2) {
+        newErrors.courses = "Please select exactly 2 courses";
       }
     }
     
@@ -112,35 +110,20 @@ const StudentDetails = () => {
     setIsSubmitting(true);
     
     try {
-      // Get existing auth data (email/mobile)
+      // Get existing auth data (mobile)
       const existingData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
       
-      // Determine email and mobile from emailOrMobile
-      let email = null;
-      let mobile = null;
-      
-      if (existingData.emailOrMobile) {
-        const isEmail = /\S+@\S+\.\S+/.test(existingData.emailOrMobile);
-        if (isEmail) {
-          email = existingData.emailOrMobile;
-        } else {
-          mobile = existingData.emailOrMobile;
-        }
-      }
-      
-      // Also check if email/mobile are directly available
-      if (existingData.email) email = existingData.email;
-      if (existingData.mobile) mobile = existingData.mobile;
+      const mobile = existingData.mobile;
       
       console.log('Auth data:', existingData);
-      console.log('Email:', email, 'Mobile:', mobile);
+      console.log('Mobile:', mobile);
       
       // Insert student data (percentage is auto-calculated by database)
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .insert({
           name: formData.name,
-          email: email,
+          email: null,
           mobile: mobile,
           father_name: formData.fatherName,
           mother_name: formData.motherName,
@@ -151,7 +134,7 @@ const StudentDetails = () => {
           aadhaar: formData.aadhaar,
           caste: formData.caste as 'general' | 'obc' | 'sc' | 'st',
           gender: formData.gender as 'male' | 'female',
-          center: formData.center as 'rajasthan' | 'centerexam' | 'other'
+          center: 'other' // Default center since courses can be from multiple centers
         } as any)
         .select()
         .single();
@@ -174,6 +157,8 @@ const StudentDetails = () => {
         });
         return;
       }
+
+      console.log('Student data saved:', studentData);
 
       // Insert student-course relationships
       const courseInserts = formData.selectedCourses.map(courseId => ({
@@ -298,8 +283,8 @@ const StudentDetails = () => {
             <CardTitle>{steps[currentStep - 1].title}</CardTitle>
             <CardDescription>
               {currentStep === 1 && "Enter your personal information"}
-              {currentStep === 2 && "Enter your educational qualifications"}
-              {currentStep === 3 && "Select your preferred center and courses"}
+              {currentStep === 2 && "Enter your educational qualifications and highest qualification"}
+              {currentStep === 3 && "Select your preferred courses from any centers"}
             </CardDescription>
           </CardHeader>
           
@@ -362,13 +347,13 @@ const StudentDetails = () => {
             {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Eligibility *</Label>
+                  <Label>Highest Qualified *</Label>
                   <Select
                     value={formData.eligibility}
                     onValueChange={(value) => setFormData({ ...formData, eligibility: value })}
                   >
                     <SelectTrigger className={errors.eligibility ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Select your eligibility" />
+                      <SelectValue placeholder="Select your highest qualification" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10th">10th Pass</SelectItem>
@@ -385,6 +370,9 @@ const StudentDetails = () => {
                       <SelectItem value="bds">BDS (Bachelor of Dental Surgery)</SelectItem>
                       <SelectItem value="mbbs">MBBS (Bachelor of Medicine)</SelectItem>
                       <SelectItem value="bpharm">B.Pharm (Bachelor of Pharmacy)</SelectItem>
+                      <SelectItem value="degree">Degree</SelectItem>
+                      <SelectItem value="bed">B.Ed (Bachelor of Education)</SelectItem>
+                      <SelectItem value="predeleled">PRE.D.EL.ED</SelectItem>
                       <SelectItem value="ma">MA (Master of Arts)</SelectItem>
                       <SelectItem value="msc">MSc (Master of Science)</SelectItem>
                       <SelectItem value="mcom">MCom (Master of Commerce)</SelectItem>
@@ -500,9 +488,7 @@ const StudentDetails = () => {
             {/* Step 3: Course Selection */}
             {currentStep === 3 && (
               <CourseSelection
-                center={formData.center}
                 selectedCourses={formData.selectedCourses}
-                onCenterChange={(center) => setFormData({ ...formData, center, selectedCourses: [] })}
                 onCoursesChange={(courses) => setFormData({ ...formData, selectedCourses: courses })}
                 errors={errors}
               />
@@ -525,7 +511,7 @@ const StudentDetails = () => {
               ) : (
                 <Button 
                   onClick={handleSubmit}
-                  disabled={formData.selectedCourses.length < 2 || isSubmitting}
+                  disabled={formData.selectedCourses.length !== 2 || isSubmitting}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   {isSubmitting ? "Submitting..." : "Submit Registration"}

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 const StudentLogin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    emailOrMobile: "",
+    mobile: "",
     password: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -21,8 +21,10 @@ const StudentLogin = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.emailOrMobile) {
-      newErrors.emailOrMobile = "Email or Mobile number is required";
+    if (!formData.mobile) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!/^\d{10}$/.test(formData.mobile)) {
+      newErrors.mobile = "Please enter a valid 10-digit mobile number";
     }
     
     if (!formData.password) {
@@ -41,52 +43,35 @@ const StudentLogin = () => {
     setIsLoading(true);
     
     try {
-      // First try to find in Supabase
-      let students = null;
-      let error = null;
-      
-      // Try both email and mobile search patterns
-      const searchQueries = [
-        `email.eq.${formData.emailOrMobile}`,
-        `mobile.eq.${formData.emailOrMobile}`
-      ];
-      
-      for (const query of searchQueries) {
-        const result = await supabase
-          .from('students')
-          .select('*')
-          .or(query)
-          .limit(1);
-        
-        if (!result.error && result.data && result.data.length > 0) {
-          students = result.data;
-          break;
-        }
-      }
+      // Search by mobile number only
+      const { data: students, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('mobile', formData.mobile)
+        .limit(1);
       
       console.log('Supabase search result:', students);
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
       if (!students || students.length === 0) {
         console.log('No students found in Supabase, checking localStorage...');
         // Fallback to localStorage if Supabase fails
         const registeredStudents = JSON.parse(localStorage.getItem("registeredStudents") || "[]");
-        const student = registeredStudents.find((s: any) => {
-          const matchesEmailOrMobile = 
-            s.emailOrMobile === formData.emailOrMobile ||
-            s.email === formData.emailOrMobile ||
-            s.mobile === formData.emailOrMobile;
-          return matchesEmailOrMobile;
-        });
+        const student = registeredStudents.find((s: any) => s.mobile === formData.mobile);
         
         if (!student) {
-          setErrors({ auth: "No account found with this email/mobile number. Please register first." });
+          setErrors({ auth: "No account found with this mobile number. Please register first." });
           setIsLoading(false);
           return;
         }
         
         // Store login session for localStorage student
         localStorage.setItem("studentAuth", JSON.stringify({ 
-          emailOrMobile: formData.emailOrMobile,
+          mobile: formData.mobile,
           studentId: student.id,
           loginTime: new Date().toISOString()
         }));
@@ -105,7 +90,7 @@ const StudentLogin = () => {
       
       // Store login session for Supabase student
       localStorage.setItem("studentAuth", JSON.stringify({ 
-        emailOrMobile: formData.emailOrMobile,
+        mobile: formData.mobile,
         studentId: student.id,
         loginTime: new Date().toISOString()
       }));
@@ -157,16 +142,17 @@ const StudentLogin = () => {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="emailOrMobile">Email or Mobile Number</Label>
+                <Label htmlFor="mobile">Mobile Number</Label>
                 <Input
-                  id="emailOrMobile"
-                  type="text"
-                  placeholder="Enter your email or mobile number"
-                  value={formData.emailOrMobile}
-                  onChange={(e) => setFormData({ ...formData, emailOrMobile: e.target.value })}
-                  className={errors.emailOrMobile ? "border-destructive" : ""}
+                  id="mobile"
+                  type="tel"
+                  placeholder="Enter your 10-digit mobile number"
+                  value={formData.mobile}
+                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                  className={errors.mobile ? "border-destructive" : ""}
+                  maxLength={10}
                 />
-                {errors.emailOrMobile && <p className="text-sm text-destructive">{errors.emailOrMobile}</p>}
+                {errors.mobile && <p className="text-sm text-destructive">{errors.mobile}</p>}
               </div>
               
               <div className="space-y-2">
@@ -216,7 +202,7 @@ const StudentLogin = () => {
                 
                 <div className="bg-muted/50 p-3 rounded-lg text-xs text-muted-foreground">
                   <strong>Demo Note:</strong><br />
-                  Use any registered email/mobile with any password to login.
+                  Use any registered mobile number with any password to login.
                 </div>
               </div>
             </form>

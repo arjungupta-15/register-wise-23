@@ -58,12 +58,27 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           {/* Logo */}
           <div className="p-6 border-b border-sidebar-border">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-sidebar-primary rounded-lg flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-sidebar-primary-foreground" />
+              <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center p-1">
+                <img src="/TARSLOGO.JPG-removebg-preview.jpg" alt="TARS Education" className="h-full w-full object-contain rounded-full" />
               </div>
               <div>
-                <h1 className="font-bold text-lg">SCRS Admin</h1>
-                <p className="text-xs text-sidebar-foreground/70">Management Portal</p>
+                <h1 className="font-bold text-lg">
+                  <span className="text-green-500">T</span>
+                  <span className="text-blue-500">A</span>
+                  <span className="text-purple-500">R</span>
+                  <span className="text-red-500">S</span>
+                  <span className="text-sidebar-foreground"> </span>
+                  <span className="text-green-500">E</span>
+                  <span className="text-blue-500">d</span>
+                  <span className="text-purple-500">u</span>
+                  <span className="text-red-500">c</span>
+                  <span className="text-green-500">a</span>
+                  <span className="text-blue-500">t</span>
+                  <span className="text-purple-500">i</span>
+                  <span className="text-red-500">o</span>
+                  <span className="text-green-500">n</span>
+                </h1>
+                <p className="text-xs text-sidebar-foreground/70">Admin Portal</p>
               </div>
             </div>
           </div>
@@ -119,7 +134,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <div className="ml-auto flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium text-card-foreground">Admin User</p>
-              <p className="text-xs text-muted-foreground">admin@scrs.com</p>
+              <p className="text-xs text-muted-foreground">admin@tarseducation.com</p>
             </div>
             <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium">
               A

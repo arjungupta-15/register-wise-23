@@ -3,13 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, BookOpen, GraduationCap, Calendar } from "lucide-react";
+import { ArrowLeft, User, BookOpen, GraduationCap, Calendar, Trash2 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface Student {
   id: string;
+  registration_id?: number;
   name: string;
   email: string | null;
   mobile: string | null;
@@ -57,6 +58,7 @@ const AdminStudentDetail = () => {
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -165,6 +167,53 @@ const AdminStudentDetail = () => {
     }
   };
 
+  const handleDeleteStudent = async () => {
+    if (!student || !id) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${student.name}? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+
+    setDeleting(true);
+    
+    try {
+      // Delete student (this will cascade delete student_courses due to foreign key)
+      const { error } = await supabase
+        .from('students')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting student:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete student",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `${student.name} has been deleted successfully`,
+      });
+
+      // Navigate back to students list
+      navigate('/admin/students');
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete student",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved": return "bg-green-100 text-green-800";
@@ -255,7 +304,7 @@ const AdminStudentDetail = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-foreground">{student.name}</h1>
-            <p className="text-muted-foreground">Student ID: {student.id}</p>
+            <p className="text-muted-foreground">Registration ID: #{student.registration_id || student.id}</p>
           </div>
           
           {/* Status and Action Buttons */}
@@ -282,6 +331,17 @@ const AdminStudentDetail = () => {
                 </Button>
               </div>
             )}
+            
+            {/* Delete Button - Always visible for admin */}
+            <Button 
+              onClick={handleDeleteStudent}
+              disabled={deleting}
+              variant="outline"
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {deleting ? "Deleting..." : "Delete Student"}
+            </Button>
           </div>
         </div>
         
@@ -349,8 +409,8 @@ const AdminStudentDetail = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Center</p>
                 <Badge variant="secondary">
-                  {student.center === "rajasthan" ? "Rajasthan Center" : 
-                   student.center === "centerexam" ? "Center Exam" : "Other Center"}
+                  {student.center === "rajasthan" ? "Rajasthan Exams" : 
+                   student.center === "centerexam" ? "Center Exams" : "Other State Exams"}
                 </Badge>
               </div>
             </CardContent>

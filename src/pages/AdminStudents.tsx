@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Eye, Download } from "lucide-react";
+import { Search, Eye, Download, Trash2 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface Student {
   id: string;
+  registration_id?: number;
   name: string;
   email: string | null;
   mobile: string | null;
@@ -38,6 +39,7 @@ const AdminStudents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEligibility, setFilterEligibility] = useState("");
   const [filterCaste, setFilterCaste] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -93,6 +95,51 @@ const AdminStudents = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteStudent = async (studentId: string, studentName: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${studentName}? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+
+    setDeletingId(studentId);
+    
+    try {
+      // Delete student (this will cascade delete student_courses due to foreign key)
+      const { error } = await supabase
+        .from('students')
+        .delete()
+        .eq('id', studentId);
+
+      if (error) {
+        console.error('Error deleting student:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete student",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `${studentName} has been deleted successfully`,
+      });
+
+      // Reload students list
+      loadStudents();
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete student",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -257,6 +304,7 @@ const AdminStudents = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Reg ID</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Contact</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
@@ -269,6 +317,9 @@ const AdminStudents = () => {
                   <tbody>
                     {filteredStudents.map((student) => (
                       <tr key={student.id} className="border-b last:border-0 hover:bg-muted/50">
+                        <td className="py-3 px-4 font-mono text-sm font-bold text-primary">
+                          #{student.registration_id || student.id}
+                        </td>
                         <td className="py-3 px-4 font-medium text-card-foreground">{student.name}</td>
                         <td className="py-3 px-4 text-muted-foreground">
                           <div className="text-sm">
@@ -295,14 +346,26 @@ const AdminStudents = () => {
                           <Badge variant="outline">{student.courses?.length || 0} courses</Badge>
                         </td>
                         <td className="py-3 px-4">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => navigate(`/admin/students/${student.id}`)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => navigate(`/admin/students/${student.id}`)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDeleteStudent(student.id, student.name)}
+                              disabled={deletingId === student.id}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              {deletingId === student.id ? "Deleting..." : "Delete"}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
