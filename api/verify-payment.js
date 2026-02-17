@@ -1,4 +1,6 @@
 // Vercel Serverless Function for Payment Verification
+import { cashfreeConfig, getCashfreeUrl } from './config.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,18 +22,14 @@ export default async function handler(req, res) {
       throw new Error('Order ID is required');
     }
 
-    // Get Cashfree credentials
-    const cashfreeAppId = process.env.CASHFREE_APP_ID;
-    const cashfreeSecretKey = process.env.CASHFREE_SECRET_KEY;
-    const cashfreeMode = process.env.CASHFREE_MODE || 'sandbox';
+    // Get Cashfree credentials from config
+    const cashfreeAppId = cashfreeConfig.appId;
+    const cashfreeSecretKey = cashfreeConfig.secretKey;
+    const cashfreeUrl = getCashfreeUrl();
 
     if (!cashfreeAppId || !cashfreeSecretKey) {
       throw new Error('Cashfree credentials not configured');
     }
-
-    const cashfreeUrl = cashfreeMode === 'production' 
-      ? 'https://api.cashfree.com/pg' 
-      : 'https://sandbox.cashfree.com/pg';
 
     // Verify payment with Cashfree
     const cashfreeResponse = await fetch(`${cashfreeUrl}/orders/${orderId}`, {
