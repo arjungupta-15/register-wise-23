@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Loader2, XCircle, Home } from "lucide-react";
-import { verifyPayment } from "@/lib/cashfree";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -14,9 +13,14 @@ const PaymentSuccess = () => {
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
 
   useEffect(() => {
-    const orderId = searchParams.get('orderId');
+    // Try both orderId and order_id parameters
+    const orderId = searchParams.get('order_id') || searchParams.get('orderId');
+    
+    console.log('Payment success page loaded, orderId:', orderId);
+    console.log('All params:', Object.fromEntries(searchParams.entries()));
     
     if (!orderId) {
+      console.error('No order ID found in URL');
       setStatus('failed');
       return;
     }
@@ -26,17 +30,37 @@ const PaymentSuccess = () => {
 
   const verifyPaymentStatus = async (orderId: string) => {
     try {
-      // Verify payment with Cashfree
-      const paymentData = await verifyPayment(orderId);
-      
+      console.log('Verifying payment for order:', orderId);
+
+      // Call backend API to verify payment
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000/api'
+        : '/api';
+
+      const response = await fetch(`${apiUrl}/verify-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderId })
+      });
+
+      const data = await response.json();
+      console.log('Verification response:', data);
+
+      if (!data.success) {
+        throw new Error(data.error || 'Payment verification failed');
+      }
+
       // Update payment status in database
-      const { error: updateError } = await supabase
-        .from('payments')
+      const { error: updateError } = await (supabase
+        .from('payments') as any)
         .update({
-          status: paymentData.order_status === 'PAID' ? 'success' : 'failed',
-          transaction_id: paymentData.cf_order_id,
-          payment_method: paymentData.payment_method,
-          payment_time: new Date().toISOString()
+          status: data.status,
+          transaction_id: data.payment_data?.cf_order_id || null,
+          payment_method: data.payment_data?.payment_method || null,
+          payment_time: data.status === 'success' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
         })
         .eq('order_id', orderId);
 
@@ -45,22 +69,22 @@ const PaymentSuccess = () => {
       }
 
       // If payment successful, update student payment status
-      if (paymentData.order_status === 'PAID') {
-        const { data: payment } = await supabase
-          .from('payments')
+      if (data.status === 'success') {
+        const { data: payment } = await (supabase
+          .from('payments') as any)
           .select('student_id')
           .eq('order_id', orderId)
           .single();
 
         if (payment) {
-          await supabase
-            .from('students')
+          await (supabase
+            .from('students') as any)
             .update({ payment_status: 'paid' })
             .eq('id', payment.student_id);
         }
 
         setStatus('success');
-        setPaymentDetails(paymentData);
+        setPaymentDetails(data.payment_data);
         
         toast({
           title: "Payment Successful!",
@@ -74,12 +98,12 @@ const PaymentSuccess = () => {
           variant: "destructive"
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment verification error:', error);
       setStatus('failed');
       toast({
         title: "Verification Failed",
-        description: "Could not verify payment status.",
+        description: error.message || "Could not verify payment status.",
         variant: "destructive"
       });
     }
