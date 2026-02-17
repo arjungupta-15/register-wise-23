@@ -4,10 +4,5 @@
       "memory": 1024,
       "maxDuration": 10
     }
-  },
-  "env": {
-    "CASHFREE_APP_ID": "@cashfree_app_id",
-    "CASHFREE_SECRET_KEY": "@cashfree_secret_key",
-    "CASHFREE_MODE": "sandbox"
   }
 }
