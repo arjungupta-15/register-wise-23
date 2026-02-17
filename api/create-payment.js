@@ -26,8 +26,24 @@ export default async function handler(req, res) {
     const cashfreeSecretKey = process.env.CASHFREE_SECRET_KEY;
     const cashfreeMode = process.env.CASHFREE_MODE || 'sandbox';
 
+    // Debug: Log environment variables (remove in production)
+    console.log('Environment check:', {
+      hasAppId: !!cashfreeAppId,
+      hasSecretKey: !!cashfreeSecretKey,
+      mode: cashfreeMode,
+      appIdLength: cashfreeAppId?.length || 0
+    });
+
     if (!cashfreeAppId || !cashfreeSecretKey) {
-      throw new Error('Cashfree credentials not configured');
+      return res.status(400).json({
+        success: false,
+        error: 'Cashfree credentials not configured',
+        debug: {
+          hasAppId: !!cashfreeAppId,
+          hasSecretKey: !!cashfreeSecretKey,
+          envKeys: Object.keys(process.env).filter(k => k.includes('CASH'))
+        }
+      });
     }
 
     // Determine Cashfree API URL
