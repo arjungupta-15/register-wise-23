@@ -326,11 +326,17 @@ const StudentStatus = () => {
                   </p>
                 </div>
                 
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h3 className="text-xl font-bold text-foreground mb-4">Course Fee Payment</h3>
-                  <div className="flex justify-between items-center mb-6">
-                    <span className="text-lg text-muted-foreground">Total Amount:</span>
-                    <span className="text-3xl font-bold text-primary">₹72,000</span>
+                {/* Full Payment Option */}
+                <div className="bg-white rounded-lg p-6 shadow-md border-2 border-green-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground">Full Payment</h3>
+                      <p className="text-sm text-muted-foreground">Pay complete amount at once</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-3xl font-bold text-primary">₹72,000</p>
+                      <p className="text-xs text-green-600 font-medium">Save ₹2,000</p>
+                    </div>
                   </div>
                   
                   <PaymentButton
@@ -345,18 +351,238 @@ const StudentStatus = () => {
                         title: "Payment Successful!",
                         description: "Your payment has been processed successfully.",
                       });
-                      // Reload student data
                       const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                       const currentStudentId = localStorage.getItem("currentStudentId");
                       loadStudent(authData.mobile, currentStudentId);
                     }}
                   />
-                  
-                  <div className="mt-4 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Secure payment powered by Cashfree
-                    </p>
+                </div>
+
+                {/* Installment Options */}
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-muted-foreground">OR</p>
+                    <p className="text-lg font-bold text-foreground mt-1">Choose Installment Plan</p>
                   </div>
+
+                  {/* 2 Installments */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border-2 border-blue-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground">2 Installments</h3>
+                        <p className="text-sm text-muted-foreground">₹40,000 + ₹34,000</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-primary">₹74,000</p>
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <PaymentButton
+                        amount={40000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={1}
+                        onSuccess={() => {
+                          toast({
+                            title: "1st Installment Paid!",
+                            description: "₹40,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                      <PaymentButton
+                        amount={34000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={2}
+                        onSuccess={() => {
+                          toast({
+                            title: "2nd Installment Paid!",
+                            description: "₹34,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3 Installments */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border-2 border-purple-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground">3 Installments</h3>
+                        <p className="text-sm text-muted-foreground">₹25,000 + ₹25,000 + ₹25,000</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-primary">₹75,000</p>
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      <PaymentButton
+                        amount={25000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={1}
+                        onSuccess={() => {
+                          toast({
+                            title: "1st Installment Paid!",
+                            description: "₹25,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                      <PaymentButton
+                        amount={25000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={2}
+                        onSuccess={() => {
+                          toast({
+                            title: "2nd Installment Paid!",
+                            description: "₹25,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                      <PaymentButton
+                        amount={25000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={3}
+                        onSuccess={() => {
+                          toast({
+                            title: "3rd Installment Paid!",
+                            description: "₹25,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4 Installments */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border-2 border-orange-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground">4 Installments</h3>
+                        <p className="text-sm text-muted-foreground">₹20,000 each</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-primary">₹80,000</p>
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <PaymentButton
+                        amount={20000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={1}
+                        onSuccess={() => {
+                          toast({
+                            title: "1st Installment Paid!",
+                            description: "₹20,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                      <PaymentButton
+                        amount={20000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={2}
+                        onSuccess={() => {
+                          toast({
+                            title: "2nd Installment Paid!",
+                            description: "₹20,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                      <PaymentButton
+                        amount={20000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={3}
+                        onSuccess={() => {
+                          toast({
+                            title: "3rd Installment Paid!",
+                            description: "₹20,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                      <PaymentButton
+                        amount={20000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="installment"
+                        installmentNumber={4}
+                        onSuccess={() => {
+                          toast({
+                            title: "4th Installment Paid!",
+                            description: "₹20,000 payment successful.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">
+                    🔒 Secure payment powered by Cashfree
+                  </p>
                 </div>
               </div>
             </CardContent>

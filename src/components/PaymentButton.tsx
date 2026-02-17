@@ -107,10 +107,10 @@ const PaymentButton = ({
       };
 
       // Load and initialize Cashfree
-      const Cashfree = await loadCashfree();
+      const Cashfree: any = await loadCashfree();
       
-      // Initialize Cashfree with session
-      const cashfree = await Cashfree({
+      // Initialize Cashfree with mode
+      const cashfree = Cashfree.create({
         mode: 'sandbox' // Change to 'production' for live
       });
 
@@ -120,7 +120,7 @@ const PaymentButton = ({
         returnUrl: `${window.location.origin}/payment/success?order_id=${orderId}`,
       };
 
-      await cashfree.checkout(checkoutOptions);
+      cashfree.checkout(checkoutOptions);
 
     } catch (error: any) {
       console.error('Payment error:', error);
