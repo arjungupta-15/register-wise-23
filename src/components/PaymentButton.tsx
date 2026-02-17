@@ -37,8 +37,8 @@ const PaymentButton = ({
       
       // Determine API URL (Vercel or local)
       const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api'  // Local development
-        : '/api';  // Production (Vercel)
+        ? 'http://localhost:3000/api'
+        : '/api';
       
       // Call backend API to create payment
       const response = await fetch(`${apiUrl}/create-payment`, {
@@ -64,6 +64,8 @@ const PaymentButton = ({
         throw new Error(data.error || 'Failed to create payment session');
       }
 
+      console.log('Payment session created:', data);
+
       // Save payment record to database
       const { error: dbError } = await (supabase
         .from('payments') as any)
@@ -82,22 +84,43 @@ const PaymentButton = ({
         console.error('Database error:', dbError);
       }
 
-      // Redirect to Cashfree payment page
-      if (data.payment_url) {
-        window.location.href = data.payment_url;
-      } else {
-        // Use Cashfree SDK
-        const cashfree = (window as any).Cashfree;
-        if (cashfree) {
-          const checkoutOptions = {
-            paymentSessionId: data.payment_session_id,
-            returnUrl: `${window.location.origin}/payment/success?order_id=${orderId}`,
+      // Initialize Cashfree SDK
+      const loadCashfree = () => {
+        return new Promise((resolve, reject) => {
+          if ((window as any).Cashfree) {
+            resolve((window as any).Cashfree);
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+          script.onload = () => {
+            if ((window as any).Cashfree) {
+              resolve((window as any).Cashfree);
+            } else {
+              reject(new Error('Cashfree SDK failed to load'));
+            }
           };
-          cashfree.checkout(checkoutOptions);
-        } else {
-          throw new Error('Cashfree SDK not loaded');
-        }
-      }
+          script.onerror = () => reject(new Error('Failed to load Cashfree SDK'));
+          document.head.appendChild(script);
+        });
+      };
+
+      // Load and initialize Cashfree
+      const Cashfree = await loadCashfree();
+      
+      // Initialize Cashfree with session
+      const cashfree = await Cashfree({
+        mode: 'sandbox' // Change to 'production' for live
+      });
+
+      // Open checkout
+      const checkoutOptions = {
+        paymentSessionId: data.payment_session_id,
+        returnUrl: `${window.location.origin}/payment/success?order_id=${orderId}`,
+      };
+
+      await cashfree.checkout(checkoutOptions);
 
     } catch (error: any) {
       console.error('Payment error:', error);
