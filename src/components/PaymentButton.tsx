@@ -106,21 +106,19 @@ const PaymentButton = ({
         });
       };
 
-      // Load and initialize Cashfree
+      // Load Cashfree SDK
       const Cashfree: any = await loadCashfree();
       
-      // Initialize Cashfree with mode
-      const cashfree = Cashfree.create({
+      // Create checkout instance
+      const cashfree = Cashfree({
         mode: 'sandbox' // Change to 'production' for live
       });
 
       // Open checkout
-      const checkoutOptions = {
+      cashfree.checkout({
         paymentSessionId: data.payment_session_id,
-        returnUrl: `${window.location.origin}/payment/success?order_id=${orderId}`,
-      };
-
-      cashfree.checkout(checkoutOptions);
+        redirectTarget: '_modal'
+      });
 
     } catch (error: any) {
       console.error('Payment error:', error);
