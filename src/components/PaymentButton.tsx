@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Loader2 } from "lucide-react";
+import { CreditCard, Loader2, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { generateOrderId } from "@/lib/cashfree";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,9 +27,11 @@ const PaymentButton = ({
   onSuccess
 }: PaymentButtonProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
 
   const handlePayment = async () => {
     setIsProcessing(true);
+    setPaymentInitiated(true);
 
     try {
       // Generate unique order ID
@@ -128,6 +130,9 @@ const PaymentButton = ({
         redirectTarget: '_modal'
       });
 
+      // Keep the button hidden and show verify button instead
+      // Don't reset isProcessing here
+
     } catch (error: any) {
       console.error('Payment error:', error);
       toast({
@@ -136,8 +141,24 @@ const PaymentButton = ({
         variant: "destructive"
       });
       setIsProcessing(false);
+      setPaymentInitiated(false);
     }
   };
+
+  // If payment initiated, show verify button instead
+  if (paymentInitiated) {
+    return (
+      <Button
+        onClick={() => window.location.href = '/payment/verify'}
+        variant="outline"
+        className="w-full"
+        size="lg"
+      >
+        <CheckCircle className="h-4 w-4 mr-2" />
+        Verify Payment Manually
+      </Button>
+    );
+  }
 
   return (
     <Button

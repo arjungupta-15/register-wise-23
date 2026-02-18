@@ -490,19 +490,6 @@ const StudentStatus = () => {
                           loadStudent(authData.mobile, currentStudentId);
                         }}
                       />
-                      
-                      <div className="mt-4 text-center">
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Payment completed but didn't redirect?
-                        </p>
-                        <Button
-                          variant="outline"
-                          onClick={() => navigate("/payment/verify")}
-                          className="w-full"
-                        >
-                          Verify Payment Manually
-                        </Button>
-                      </div>
                     </>
                   )}
                 </div>
@@ -595,19 +582,6 @@ const StudentStatus = () => {
                               />
                             )}
                           </div>
-                        </div>
-                        
-                        <div className="mt-4 text-center">
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Payment completed but didn't redirect?
-                          </p>
-                          <Button
-                            variant="outline"
-                            onClick={() => navigate("/payment/verify")}
-                            className="w-full"
-                          >
-                            Verify Payment Manually
-                          </Button>
                         </div>
                       </>
                     )}
@@ -726,19 +700,6 @@ const StudentStatus = () => {
                               />
                             )}
                           </div>
-                        </div>
-                        
-                        <div className="mt-4 text-center">
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Payment completed but didn't redirect?
-                          </p>
-                          <Button
-                            variant="outline"
-                            onClick={() => navigate("/payment/verify")}
-                            className="w-full"
-                          >
-                            Verify Payment Manually
-                          </Button>
                         </div>
                       </>
                     )}
@@ -889,19 +850,6 @@ const StudentStatus = () => {
                               />
                             )}
                           </div>
-                        </div>
-                        
-                        <div className="mt-4 text-center">
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Payment completed but didn't redirect?
-                          </p>
-                          <Button
-                            variant="outline"
-                            onClick={() => navigate("/payment/verify")}
-                            className="w-full"
-                          >
-                            Verify Payment Manually
-                          </Button>
                         </div>
                       </>
                     )}
