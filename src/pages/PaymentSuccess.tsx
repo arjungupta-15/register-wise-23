@@ -32,14 +32,18 @@ const PaymentSuccess = () => {
 
   const verifyPaymentStatus = async (orderId: string) => {
     try {
-      console.log('🔍 Verifying payment for order:', orderId);
+      console.log('🔍 Starting payment verification...');
+      console.log('Order ID:', orderId);
+
+      // Small delay to ensure Cashfree has processed the payment
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Call backend API to verify payment
       const apiUrl = window.location.hostname === 'localhost' 
-        ? `${window.location.origin}/api`  // Use same origin for local dev
+        ? `${window.location.origin}/api`
         : '/api';
 
-      console.log('API URL:', apiUrl);
+      console.log('Calling API:', `${apiUrl}/verify-payment`);
 
       const response = await fetch(`${apiUrl}/verify-payment`, {
         method: 'POST',
@@ -49,16 +53,23 @@ const PaymentSuccess = () => {
         body: JSON.stringify({ orderId })
       });
 
+      console.log('API Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error:', errorText);
+        throw new Error(`API returned ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('✅ Verification response:', data);
+      console.log('✅ Verification data:', data);
 
       if (!data.success) {
+        console.error('Verification failed:', data.error);
         throw new Error(data.error || 'Payment verification failed');
       }
+
+      console.log('Payment status:', data.status);
 
       // Update payment status in database
       const { error: updateError } = await (supabase
@@ -74,21 +85,35 @@ const PaymentSuccess = () => {
 
       if (updateError) {
         console.error('Database update error:', updateError);
+      } else {
+        console.log('✅ Payment record updated in database');
       }
 
       // If payment successful, update student payment status
       if (data.status === 'success') {
-        const { data: payment } = await (supabase
+        console.log('Payment successful! Updating student status...');
+        
+        const { data: payment, error: fetchError } = await (supabase
           .from('payments') as any)
           .select('student_id')
           .eq('order_id', orderId)
           .single();
 
+        if (fetchError) {
+          console.error('Error fetching payment:', fetchError);
+        }
+
         if (payment) {
-          await (supabase
+          const { error: studentUpdateError } = await (supabase
             .from('students') as any)
             .update({ payment_status: 'paid' })
             .eq('id', payment.student_id);
+
+          if (studentUpdateError) {
+            console.error('Student update error:', studentUpdateError);
+          } else {
+            console.log('✅ Student payment status updated to paid');
+          }
         }
 
         setStatus('success');
@@ -99,6 +124,7 @@ const PaymentSuccess = () => {
           description: "Your payment has been processed successfully.",
         });
       } else {
+        console.log('Payment not successful, status:', data.status);
         setStatus('failed');
         toast({
           title: "Payment Failed",
@@ -107,7 +133,8 @@ const PaymentSuccess = () => {
         });
       }
     } catch (error: any) {
-      console.error('Payment verification error:', error);
+      console.error('❌ Payment verification error:', error);
+      console.error('Error details:', error.message);
       setStatus('failed');
       toast({
         title: "Verification Failed",
