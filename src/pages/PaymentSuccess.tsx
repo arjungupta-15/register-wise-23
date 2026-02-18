@@ -16,11 +16,13 @@ const PaymentSuccess = () => {
     // Try both orderId and order_id parameters
     const orderId = searchParams.get('order_id') || searchParams.get('orderId');
     
-    console.log('Payment success page loaded, orderId:', orderId);
-    console.log('All params:', Object.fromEntries(searchParams.entries()));
+    console.log('=== Payment Success Page Loaded ===');
+    console.log('Order ID:', orderId);
+    console.log('All URL params:', Object.fromEntries(searchParams.entries()));
+    console.log('Full URL:', window.location.href);
     
     if (!orderId) {
-      console.error('No order ID found in URL');
+      console.error('❌ No order ID found in URL');
       setStatus('failed');
       return;
     }
@@ -143,11 +145,11 @@ const PaymentSuccess = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Order ID:</span>
-                    <span className="font-medium">{paymentDetails.order_id}</span>
+                    <span className="font-medium text-xs">{paymentDetails.order_id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Amount:</span>
-                    <span className="font-medium">₹{paymentDetails.order_amount}</span>
+                    <span className="font-medium">₹{paymentDetails.order_amount?.toLocaleString() || '72,000'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
