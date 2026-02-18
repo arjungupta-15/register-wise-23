@@ -234,6 +234,65 @@ const StudentStatus = () => {
     return totalPaid >= 72000;
   };
 
+  // Check if any installment from a specific plan is paid
+  const hasAnyInstallmentPaid = () => {
+    return getPaidInstallments().length > 0;
+  };
+
+  // Check if specific installment is paid
+  const isInstallmentPaid = (installmentNumber: number) => {
+    return payments.some(p => 
+      p.payment_type === 'installment' && 
+      p.installment_number === installmentNumber &&
+      p.status === 'success'
+    );
+  };
+
+  // Get the installment plan being used (based on amounts)
+  const getActiveInstallmentPlan = () => {
+    const paidInstallments = getPaidInstallments();
+    if (paidInstallments.length === 0) return null;
+    
+    // Check amounts to determine plan
+    const firstAmount = parseFloat(paidInstallments[0].amount);
+    if (firstAmount === 40000) return '2-installment';
+    if (firstAmount === 25000) return '3-installment';
+    if (firstAmount === 20000) return '4-installment';
+    return null;
+  };
+
+  // Check if a payment option should be disabled
+  const isPaymentOptionDisabled = (planType: string) => {
+    // If full payment done, disable everything
+    if (isFullPaymentDone()) return true;
+    
+    // If any installment paid, disable full payment and other plans
+    if (hasAnyInstallmentPaid()) {
+      const activePlan = getActiveInstallmentPlan();
+      if (planType === 'full') return true;
+      if (planType !== activePlan) return true;
+    }
+    
+    return false;
+  };
+
+  // Check if specific installment button should be disabled
+  const isInstallmentButtonDisabled = (planType: string, installmentNumber: number) => {
+    // If full payment done, disable all
+    if (isFullPaymentDone()) return true;
+    
+    // If different plan is active, disable this
+    const activePlan = getActiveInstallmentPlan();
+    if (activePlan && activePlan !== planType) return true;
+    
+    // For sequential payment: only enable if previous installment is paid
+    if (installmentNumber > 1) {
+      return !isInstallmentPaid(installmentNumber - 1);
+    }
+    
+    return false;
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("studentAuth");
     localStorage.removeItem("currentStudentId");
@@ -394,7 +453,7 @@ const StudentStatus = () => {
                 </div>
                 
                 {/* Full Payment Option */}
-                <div className="bg-white rounded-lg p-6 shadow-md border-2 border-green-200">
+                <div className={`bg-white rounded-lg p-6 shadow-md border-2 ${isPaymentOptionDisabled('full') ? 'border-gray-200 opacity-50' : 'border-green-200'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-foreground">Full Payment</h3>
@@ -406,36 +465,46 @@ const StudentStatus = () => {
                     </div>
                   </div>
                   
-                  <PaymentButton
-                    amount={72000}
-                    studentId={student.id}
-                    studentName={student.name}
-                    studentMobile={student.mobile || ""}
-                    studentEmail={student.email || undefined}
-                    paymentType="onetime"
-                    onSuccess={() => {
-                      toast({
-                        title: "Payment Successful!",
-                        description: "Your payment has been processed successfully.",
-                      });
-                      const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                      const currentStudentId = localStorage.getItem("currentStudentId");
-                      loadStudent(authData.mobile, currentStudentId);
-                    }}
-                  />
-                  
-                  <div className="mt-4 text-center">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Payment completed but didn't redirect?
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/payment/verify")}
-                      className="w-full"
-                    >
-                      Verify Payment Manually
-                    </Button>
-                  </div>
+                  {isPaymentOptionDisabled('full') ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">
+                        {isFullPaymentDone() ? '✓ Full payment completed' : 'Installment plan selected'}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <PaymentButton
+                        amount={72000}
+                        studentId={student.id}
+                        studentName={student.name}
+                        studentMobile={student.mobile || ""}
+                        studentEmail={student.email || undefined}
+                        paymentType="onetime"
+                        onSuccess={() => {
+                          toast({
+                            title: "Payment Successful!",
+                            description: "Your payment has been processed successfully.",
+                          });
+                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                          const currentStudentId = localStorage.getItem("currentStudentId");
+                          loadStudent(authData.mobile, currentStudentId);
+                        }}
+                      />
+                      
+                      <div className="mt-4 text-center">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Payment completed but didn't redirect?
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate("/payment/verify")}
+                          className="w-full"
+                        >
+                          Verify Payment Manually
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Installment Options */}
@@ -446,7 +515,7 @@ const StudentStatus = () => {
                   </div>
 
                   {/* 2 Installments */}
-                  <div className="bg-white rounded-lg p-6 shadow-md border-2 border-blue-200">
+                  <div className={`bg-white rounded-lg p-6 shadow-md border-2 ${isPaymentOptionDisabled('2-installment') ? 'border-gray-200 opacity-50' : 'border-blue-200'}`}>
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-foreground">2 Installments</h3>
@@ -458,61 +527,94 @@ const StudentStatus = () => {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3">
-                      <PaymentButton
-                        amount={40000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={1}
-                        onSuccess={() => {
-                          toast({
-                            title: "1st Installment Paid!",
-                            description: "₹40,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                      <PaymentButton
-                        amount={34000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={2}
-                        onSuccess={() => {
-                          toast({
-                            title: "2nd Installment Paid!",
-                            description: "₹34,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                    </div>
-                    
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Payment completed but didn't redirect?
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate("/payment/verify")}
-                        className="w-full"
-                      >
-                        Verify Payment Manually
-                      </Button>
-                    </div>
+                    {isPaymentOptionDisabled('2-installment') ? (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">
+                          {isFullPaymentDone() ? 'Full payment completed' : 'Different plan selected'}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            {isInstallmentPaid(1) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-sm font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹40,000</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={40000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={1}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "1st Installment Paid!",
+                                    description: "₹40,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {isInstallmentPaid(2) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-sm font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹34,000</p>
+                              </div>
+                            ) : isInstallmentButtonDisabled('2-installment', 2) ? (
+                              <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
+                                <p className="text-sm text-gray-500">Pay 1st First</p>
+                                <p className="text-xs text-gray-400">₹34,000</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={34000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={2}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "2nd Installment Paid!",
+                                    description: "₹34,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 text-center">
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Payment completed but didn't redirect?
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => navigate("/payment/verify")}
+                            className="w-full"
+                          >
+                            Verify Payment Manually
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* 3 Installments */}
-                  <div className="bg-white rounded-lg p-6 shadow-md border-2 border-purple-200">
+                  <div className={`bg-white rounded-lg p-6 shadow-md border-2 ${isPaymentOptionDisabled('3-installment') ? 'border-gray-200 opacity-50' : 'border-purple-200'}`}>
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-foreground">3 Installments</h3>
@@ -524,79 +626,126 @@ const StudentStatus = () => {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-2">
-                      <PaymentButton
-                        amount={25000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={1}
-                        onSuccess={() => {
-                          toast({
-                            title: "1st Installment Paid!",
-                            description: "₹25,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                      <PaymentButton
-                        amount={25000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={2}
-                        onSuccess={() => {
-                          toast({
-                            title: "2nd Installment Paid!",
-                            description: "₹25,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                      <PaymentButton
-                        amount={25000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={3}
-                        onSuccess={() => {
-                          toast({
-                            title: "3rd Installment Paid!",
-                            description: "₹25,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                    </div>
-                    
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Payment completed but didn't redirect?
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate("/payment/verify")}
-                        className="w-full"
-                      >
-                        Verify Payment Manually
-                      </Button>
-                    </div>
+                    {isPaymentOptionDisabled('3-installment') ? (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">
+                          {isFullPaymentDone() ? 'Full payment completed' : 'Different plan selected'}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            {isInstallmentPaid(1) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-xs font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹25K</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={25000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={1}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "1st Installment Paid!",
+                                    description: "₹25,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {isInstallmentPaid(2) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-xs font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹25K</p>
+                              </div>
+                            ) : isInstallmentButtonDisabled('3-installment', 2) ? (
+                              <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
+                                <p className="text-xs text-gray-500">Pay 1st</p>
+                                <p className="text-xs text-gray-400">₹25K</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={25000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={2}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "2nd Installment Paid!",
+                                    description: "₹25,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {isInstallmentPaid(3) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-xs font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹25K</p>
+                              </div>
+                            ) : isInstallmentButtonDisabled('3-installment', 3) ? (
+                              <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
+                                <p className="text-xs text-gray-500">Pay 2nd</p>
+                                <p className="text-xs text-gray-400">₹25K</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={25000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={3}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "3rd Installment Paid!",
+                                    description: "₹25,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 text-center">
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Payment completed but didn't redirect?
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => navigate("/payment/verify")}
+                            className="w-full"
+                          >
+                            Verify Payment Manually
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* 4 Installments */}
-                  <div className="bg-white rounded-lg p-6 shadow-md border-2 border-orange-200">
+                  <div className={`bg-white rounded-lg p-6 shadow-md border-2 ${isPaymentOptionDisabled('4-installment') ? 'border-gray-200 opacity-50' : 'border-orange-200'}`}>
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-foreground">4 Installments</h3>
@@ -608,93 +757,154 @@ const StudentStatus = () => {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3">
-                      <PaymentButton
-                        amount={20000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={1}
-                        onSuccess={() => {
-                          toast({
-                            title: "1st Installment Paid!",
-                            description: "₹20,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                      <PaymentButton
-                        amount={20000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={2}
-                        onSuccess={() => {
-                          toast({
-                            title: "2nd Installment Paid!",
-                            description: "₹20,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                      <PaymentButton
-                        amount={20000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={3}
-                        onSuccess={() => {
-                          toast({
-                            title: "3rd Installment Paid!",
-                            description: "₹20,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                      <PaymentButton
-                        amount={20000}
-                        studentId={student.id}
-                        studentName={student.name}
-                        studentMobile={student.mobile || ""}
-                        studentEmail={student.email || undefined}
-                        paymentType="installment"
-                        installmentNumber={4}
-                        onSuccess={() => {
-                          toast({
-                            title: "4th Installment Paid!",
-                            description: "₹20,000 payment successful.",
-                          });
-                          const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
-                          const currentStudentId = localStorage.getItem("currentStudentId");
-                          loadStudent(authData.mobile, currentStudentId);
-                        }}
-                      />
-                    </div>
-                    
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Payment completed but didn't redirect?
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate("/payment/verify")}
-                        className="w-full"
-                      >
-                        Verify Payment Manually
-                      </Button>
-                    </div>
+                    {isPaymentOptionDisabled('4-installment') ? (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">
+                          {isFullPaymentDone() ? 'Full payment completed' : 'Different plan selected'}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            {isInstallmentPaid(1) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-sm font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹20,000</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={20000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={1}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "1st Installment Paid!",
+                                    description: "₹20,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {isInstallmentPaid(2) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-sm font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹20,000</p>
+                              </div>
+                            ) : isInstallmentButtonDisabled('4-installment', 2) ? (
+                              <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
+                                <p className="text-sm text-gray-500">Pay 1st First</p>
+                                <p className="text-xs text-gray-400">₹20,000</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={20000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={2}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "2nd Installment Paid!",
+                                    description: "₹20,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {isInstallmentPaid(3) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-sm font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹20,000</p>
+                              </div>
+                            ) : isInstallmentButtonDisabled('4-installment', 3) ? (
+                              <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
+                                <p className="text-sm text-gray-500">Pay 2nd First</p>
+                                <p className="text-xs text-gray-400">₹20,000</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={20000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={3}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "3rd Installment Paid!",
+                                    description: "₹20,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {isInstallmentPaid(4) ? (
+                              <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
+                                <p className="text-sm font-semibold text-green-800">✓ Paid</p>
+                                <p className="text-xs text-green-600">₹20,000</p>
+                              </div>
+                            ) : isInstallmentButtonDisabled('4-installment', 4) ? (
+                              <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
+                                <p className="text-sm text-gray-500">Pay 3rd First</p>
+                                <p className="text-xs text-gray-400">₹20,000</p>
+                              </div>
+                            ) : (
+                              <PaymentButton
+                                amount={20000}
+                                studentId={student.id}
+                                studentName={student.name}
+                                studentMobile={student.mobile || ""}
+                                studentEmail={student.email || undefined}
+                                paymentType="installment"
+                                installmentNumber={4}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "4th Installment Paid!",
+                                    description: "₹20,000 payment successful.",
+                                  });
+                                  const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
+                                  const currentStudentId = localStorage.getItem("currentStudentId");
+                                  loadStudent(authData.mobile, currentStudentId);
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 text-center">
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Payment completed but didn't redirect?
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => navigate("/payment/verify")}
+                            className="w-full"
+                          >
+                            Verify Payment Manually
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
