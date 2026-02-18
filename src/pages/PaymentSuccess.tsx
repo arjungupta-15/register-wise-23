@@ -32,12 +32,14 @@ const PaymentSuccess = () => {
 
   const verifyPaymentStatus = async (orderId: string) => {
     try {
-      console.log('Verifying payment for order:', orderId);
+      console.log('🔍 Verifying payment for order:', orderId);
 
       // Call backend API to verify payment
       const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api'
+        ? `${window.location.origin}/api`  // Use same origin for local dev
         : '/api';
+
+      console.log('API URL:', apiUrl);
 
       const response = await fetch(`${apiUrl}/verify-payment`, {
         method: 'POST',
@@ -47,8 +49,12 @@ const PaymentSuccess = () => {
         body: JSON.stringify({ orderId })
       });
 
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
       const data = await response.json();
-      console.log('Verification response:', data);
+      console.log('✅ Verification response:', data);
 
       if (!data.success) {
         throw new Error(data.error || 'Payment verification failed');
