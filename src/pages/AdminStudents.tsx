@@ -40,6 +40,7 @@ const AdminStudents = () => {
   const [filterEligibility, setFilterEligibility] = useState("");
   const [filterCaste, setFilterCaste] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [paymentsMap, setPaymentsMap] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -86,6 +87,24 @@ const AdminStudents = () => {
       })) || [];
 
       setStudents(transformedStudents);
+      
+      // Load payments for all students
+      const { data: paymentsData } = await (supabase
+        .from('payments') as any)
+        .select('*')
+        .eq('status', 'success');
+      
+      if (paymentsData) {
+        // Group payments by student_id
+        const paymentsGrouped = paymentsData.reduce((acc: Record<string, any[]>, payment: any) => {
+          if (!acc[payment.student_id]) {
+            acc[payment.student_id] = [];
+          }
+          acc[payment.student_id].push(payment);
+          return acc;
+        }, {});
+        setPaymentsMap(paymentsGrouped);
+      }
     } catch (error) {
       console.error('Error loading students:', error);
       toast({
@@ -211,6 +230,26 @@ const AdminStudents = () => {
     return eligibilityMap[eligibility] || eligibility;
   };
 
+  // Payment helper functions
+  const getStudentPaymentTotal = (studentId: string) => {
+    const payments = paymentsMap[studentId] || [];
+    return payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  };
+
+  const getStudentPaymentType = (studentId: string) => {
+    const payments = paymentsMap[studentId] || [];
+    if (payments.length === 0) return 'No Payment';
+    if (payments.some(p => p.payment_type === 'onetime')) return 'Full';
+    return `${payments.length} Inst.`;
+  };
+
+  const getPaymentBadgeColor = (studentId: string) => {
+    const total = getStudentPaymentTotal(studentId);
+    if (total >= 72000) return 'bg-green-100 text-green-800';
+    if (total > 0) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-gray-100 text-gray-800';
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -308,6 +347,7 @@ const AdminStudents = () => {
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Contact</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Payment</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Eligibility</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
                       <th className="text-left py-3 px-4 font-medium text-muted-foreground">Courses</th>
@@ -331,6 +371,18 @@ const AdminStudents = () => {
                           <Badge className={getStatusColor(student.status)}>
                             {getStatusLabel(student.status)}
                           </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="space-y-1">
+                            <Badge className={getPaymentBadgeColor(student.id)}>
+                              {getStudentPaymentType(student.id)}
+                            </Badge>
+                            {getStudentPaymentTotal(student.id) > 0 && (
+                              <div className="text-xs font-semibold text-muted-foreground">
+                                ₹{getStudentPaymentTotal(student.id).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4">
                           <Badge variant="secondary">

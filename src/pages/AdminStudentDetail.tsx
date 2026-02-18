@@ -59,6 +59,7 @@ const AdminStudentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [payments, setPayments] = useState<any[]>([]);
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -109,6 +110,18 @@ const AdminStudentDetail = () => {
       };
 
       setStudent(transformedStudent);
+      
+      // Load payments for this student
+      const { data: paymentsData } = await (supabase
+        .from('payments') as any)
+        .select('*')
+        .eq('student_id', id)
+        .order('created_at', { ascending: true });
+      
+      if (paymentsData) {
+        setPayments(paymentsData);
+        console.log('Loaded payments:', paymentsData);
+      }
     } catch (error) {
       console.error('Error loading student:', error);
       toast({
@@ -268,6 +281,33 @@ const AdminStudentDetail = () => {
       case "st": return "Scheduled Tribe (ST)";
       default: return caste;
     }
+  };
+
+  // Payment helper functions
+  const getSuccessfulPayments = () => {
+    return payments.filter(p => p.status === 'success');
+  };
+
+  const getTotalPaid = () => {
+    return getSuccessfulPayments().reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  };
+
+  const isFullPaymentDone = () => {
+    return getSuccessfulPayments().some(p => p.payment_type === 'onetime' && p.amount >= 72000);
+  };
+
+  const getPaymentType = () => {
+    const successPayments = getSuccessfulPayments();
+    if (successPayments.length === 0) return 'No Payment';
+    if (isFullPaymentDone()) return 'Full Payment';
+    return 'Installments';
+  };
+
+  const getPaymentStatusColor = () => {
+    const totalPaid = getTotalPaid();
+    if (totalPaid >= 72000) return 'bg-green-100 text-green-800';
+    if (totalPaid > 0) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-gray-100 text-gray-800';
   };
 
   if (loading) {
@@ -474,6 +514,118 @@ const AdminStudentDetail = () => {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Information */}
+          <Card className="shadow-sm lg:col-span-3">
+            <CardHeader className="flex flex-row items-center gap-3">
+              <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              <CardTitle>Payment Information</CardTitle>
+              <Badge className={`ml-auto ${getPaymentStatusColor()}`}>
+                {getPaymentType()}
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              {payments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No payment records found
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Payment Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Paid</p>
+                      <p className="text-2xl font-bold text-primary">₹{getTotalPaid().toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Payment Type</p>
+                      <p className="text-lg font-semibold text-card-foreground">{getPaymentType()}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Transactions</p>
+                      <p className="text-lg font-semibold text-card-foreground">
+                        {getSuccessfulPayments().length} successful
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Payment Details Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Order ID</th>
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Type</th>
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">Method</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payments.map((payment) => (
+                          <tr key={payment.id} className="border-b last:border-0 hover:bg-muted/50">
+                            <td className="py-3 px-4 text-sm text-muted-foreground">
+                              {new Date(payment.created_at).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric"
+                              })}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-xs text-card-foreground">
+                              {payment.order_id}
+                            </td>
+                            <td className="py-3 px-4">
+                              {payment.payment_type === 'onetime' ? (
+                                <Badge variant="secondary">Full Payment</Badge>
+                              ) : (
+                                <Badge variant="outline">
+                                  Installment #{payment.installment_number}
+                                </Badge>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 font-semibold text-card-foreground">
+                              ₹{parseFloat(payment.amount).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge className={
+                                payment.status === 'success' ? 'bg-green-100 text-green-800' :
+                                payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                payment.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }>
+                                {payment.status}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4 text-sm text-muted-foreground">
+                              {payment.payment_method || '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Remaining Balance */}
+                  {getTotalPaid() < 72000 && getTotalPaid() > 0 && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm font-semibold text-yellow-900">Remaining Balance</p>
+                      <p className="text-xl font-bold text-yellow-800">
+                        ₹{(72000 - getTotalPaid()).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Minimum total required: ₹72,000
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
