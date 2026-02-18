@@ -61,7 +61,6 @@ const PaymentButton = ({
         })
       });
 
-      const data = await response.json();
       console.log('API Response:', data);
 
       if (!data.success) {
@@ -70,11 +69,15 @@ const PaymentButton = ({
 
       console.log('Payment session created:', data);
 
+      // Save order ID to localStorage for easy verification later
+      localStorage.setItem('lastPaymentOrderId', data.order_id);
+      console.log('💾 Order ID saved to localStorage:', data.order_id);
+
       // Save payment record to database
       const { error: dbError } = await (supabase
         .from('payments') as any)
         .insert({
-          order_id: orderId,
+          order_id: data.order_id,
           student_id: studentId,
           amount: amount,
           payment_type: paymentType,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,19 @@ const VerifyPayment = () => {
   const navigate = useNavigate();
   const [orderId, setOrderId] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Auto-fill order ID from localStorage
+  useEffect(() => {
+    const lastOrderId = localStorage.getItem('lastPaymentOrderId');
+    if (lastOrderId) {
+      setOrderId(lastOrderId);
+      console.log('✅ Auto-filled Order ID from localStorage:', lastOrderId);
+      toast({
+        title: "Order ID Found!",
+        description: "Your last payment order ID has been auto-filled.",
+      });
+    }
+  }, []);
 
   const handleVerify = async () => {
     if (!orderId.trim()) {
