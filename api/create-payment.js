@@ -29,6 +29,8 @@ export default async function handler(req, res) {
     const cashfreeUrl = getCashfreeUrl();
 
     console.log('Payment request:', { orderId, amount, customerName, hasCredentials: !!cashfreeAppId });
+    console.log('Request origin:', req.headers.origin);
+    console.log('Request host:', req.headers.host);
 
     if (!cashfreeAppId || !cashfreeSecretKey) {
       return res.status(400).json({
@@ -36,6 +38,16 @@ export default async function handler(req, res) {
         error: 'Cashfree credentials not configured'
       });
     }
+
+    // Determine the base URL for return/notify URLs
+    const baseUrl = req.headers.origin || 
+                    (req.headers.host ? `https://${req.headers.host}` : 'https://tareducations.vercel.app');
+    
+    const returnUrl = `${baseUrl}/payment/success?order_id=${orderId}`;
+    const notifyUrl = `${baseUrl}/api/payment/webhook`;
+
+    console.log('Return URL:', returnUrl);
+    console.log('Notify URL:', notifyUrl);
 
     // Create payment order with Cashfree
     const cashfreeResponse = await fetch(`${cashfreeUrl}/orders`, {
@@ -57,8 +69,8 @@ export default async function handler(req, res) {
           customer_phone: customerPhone
         },
         order_meta: {
-          return_url: `${req.headers.origin || 'https://tareducations.vercel.app'}/payment/success?order_id=${orderId}`,
-          notify_url: `${req.headers.origin || 'https://tareducations.vercel.app'}/api/payment/webhook`
+          return_url: returnUrl,
+          notify_url: notifyUrl
         }
       })
     });
