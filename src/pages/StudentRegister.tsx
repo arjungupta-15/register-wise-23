@@ -129,7 +129,7 @@ const StudentRegister = () => {
                 <Input
                   id="mobile"
                   type="tel"
-                  placeholder="9876543210"
+                  placeholder="Enter Your Number"
                   value={formData.mobile}
                   onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                   className={errors.mobile ? "border-destructive" : ""}
@@ -143,7 +143,7 @@ const StudentRegister = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Enter Your Password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className={errors.password ? "border-destructive" : ""}
@@ -156,7 +156,7 @@ const StudentRegister = () => {
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Enter Your Password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   className={errors.confirmPassword ? "border-destructive" : ""}
