@@ -35,10 +35,13 @@ const PaymentButton = ({
       // Generate unique order ID
       const orderId = generateOrderId();
       
-      // Determine API URL (Vercel or local)
+      // Determine API URL based on environment
       const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api'
-        : '/api';
+        ? `${window.location.origin}/api`  // Use same origin for local dev
+        : '/api';  // Production (Vercel)
+      
+      console.log('API URL:', apiUrl);
+      console.log('Calling create-payment API...');
       
       // Call backend API to create payment
       const response = await fetch(`${apiUrl}/create-payment`, {
@@ -59,6 +62,7 @@ const PaymentButton = ({
       });
 
       const data = await response.json();
+      console.log('API Response:', data);
 
       if (!data.success) {
         throw new Error(data.error || 'Failed to create payment session');
