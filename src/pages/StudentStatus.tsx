@@ -46,6 +46,7 @@ const StudentStatus = () => {
   const navigate = useNavigate();
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [payments, setPayments] = useState<any[]>([]);
 
   useEffect(() => {
     console.log('StudentStatus component mounted'); // Debug log
@@ -93,6 +94,19 @@ const StudentStatus = () => {
             ...(data as any),
             courses: (data as any).student_courses?.map((sc: any) => sc.courses).filter(Boolean) || []
           };
+          
+          // Load payments for this student
+          const { data: paymentsData } = await (supabase
+            .from('payments') as any)
+            .select('*')
+            .eq('student_id', studentId)
+            .eq('status', 'success')
+            .order('created_at', { ascending: true });
+          
+          if (paymentsData) {
+            setPayments(paymentsData);
+            console.log('Loaded payments:', paymentsData);
+          }
         }
       } else if (mobile) {
         const { data, error } = await supabase
@@ -115,6 +129,19 @@ const StudentStatus = () => {
             ...(data as any),
             courses: (data as any).student_courses?.map((sc: any) => sc.courses).filter(Boolean) || []
           };
+          
+          // Load payments for this student
+          const { data: paymentsData } = await (supabase
+            .from('payments') as any)
+            .select('*')
+            .eq('student_id', (data as any).id)
+            .eq('status', 'success')
+            .order('created_at', { ascending: true });
+          
+          if (paymentsData) {
+            setPayments(paymentsData);
+            console.log('Loaded payments:', paymentsData);
+          }
         }
       }
       
@@ -181,6 +208,30 @@ const StudentStatus = () => {
       "ot-cloud": "Cloud Computing",
     };
     return courseNames[courseId] || courseId;
+  };
+
+  // Check if full payment is done
+  const isFullPaymentDone = () => {
+    return payments.some(p => p.payment_type === 'onetime' && p.amount >= 72000);
+  };
+
+  // Get paid installments
+  const getPaidInstallments = () => {
+    return payments.filter(p => p.payment_type === 'installment');
+  };
+
+  // Calculate total paid amount
+  const getTotalPaid = () => {
+    return payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  };
+
+  // Check if all payments are complete
+  const isPaymentComplete = () => {
+    if (isFullPaymentDone()) return true;
+    
+    const totalPaid = getTotalPaid();
+    // Consider payment complete if paid >= 72000 (minimum full payment)
+    return totalPaid >= 72000;
   };
 
   const handleLogout = () => {
@@ -308,7 +359,7 @@ const StudentStatus = () => {
           </CardContent>
         </Card>
 
-        {student.status === "approved" && student.payment_status === "pending" && (
+        {student.status === "approved" && !isPaymentComplete() && (
           <Card className="shadow-xl border-0 bg-gradient-to-r from-green-50 to-emerald-50">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-green-800">
@@ -324,6 +375,22 @@ const StudentStatus = () => {
                   <p className="text-green-800 font-medium">
                     🎉 Congratulations! Your application has been approved. Please complete the payment to confirm your enrollment.
                   </p>
+                  {payments.length > 0 && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                      <p className="text-sm font-semibold text-blue-900">Payment Status:</p>
+                      <p className="text-sm text-blue-800">
+                        Total Paid: ₹{getTotalPaid().toLocaleString()} 
+                        {getPaidInstallments().length > 0 && (
+                          <span className="ml-2">
+                            ({getPaidInstallments().length} installment{getPaidInstallments().length > 1 ? 's' : ''} paid)
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Minimum required: ₹72,000
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Full Payment Option */}
@@ -641,17 +708,33 @@ const StudentStatus = () => {
           </Card>
         )}
 
-        {student.status === "approved" && student.payment_status === "paid" && (
+        {student.status === "approved" && isPaymentComplete() && (
           <Card className="shadow-xl border-0 bg-gradient-to-r from-green-50 to-emerald-50">
             <CardContent className="p-8 text-center">
               <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="h-12 w-12 text-green-600" />
               </div>
               <h3 className="text-2xl font-bold text-green-800 mb-2">Payment Completed!</h3>
-              <p className="text-green-700 mb-4">
+              <p className="text-green-700 mb-2">
                 Your enrollment has been confirmed. You will receive course details via email/SMS.
               </p>
-              <Button onClick={() => navigate("/")} variant="outline">
+              <div className="mt-4 p-4 bg-white/70 rounded-lg">
+                <p className="text-sm font-semibold text-green-900">Payment Summary:</p>
+                <p className="text-lg font-bold text-green-800">
+                  Total Paid: ₹{getTotalPaid().toLocaleString()}
+                </p>
+                {getPaidInstallments().length > 0 && (
+                  <p className="text-sm text-green-700 mt-1">
+                    Paid in {getPaidInstallments().length} installment{getPaidInstallments().length > 1 ? 's' : ''}
+                  </p>
+                )}
+                {isFullPaymentDone() && (
+                  <p className="text-sm text-green-700 mt-1">
+                    ✓ Full payment received
+                  </p>
+                )}
+              </div>
+              <Button onClick={() => navigate("/")} variant="outline" className="mt-4">
                 Back to Home
               </Button>
             </CardContent>
