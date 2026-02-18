@@ -10,6 +10,7 @@ import StudentLogin from "./pages/StudentLogin";
 import StudentStatus from "./pages/StudentStatus";
 import ContactUs from "./pages/ContactUs";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import VerifyPayment from "./pages/VerifyPayment";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminStudents from "./pages/AdminStudents";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/student/status" element={<StudentStatus />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/verify" element={<VerifyPayment />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/students" element={<AdminStudents />} />
