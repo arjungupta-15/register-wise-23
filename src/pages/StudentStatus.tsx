@@ -7,6 +7,7 @@ import { CheckCircle, Clock, XCircle, CreditCard, Building2, ArrowLeft, BookOpen
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentButton from "@/components/PaymentButton";
+import { calculatePricing, parseFee, getInstallmentTotal, formatCurrency, type PricingPlan } from "@/lib/pricing";
 
 interface Student {
   id: string;
@@ -18,7 +19,7 @@ interface Student {
   payment_status: "pending" | "paid";
   center: 'rajasthan' | 'centerexam' | 'other';
   created_at: string;
-  courses?: { id: string; name: string }[];
+  courses?: { id: string; name: string; fee?: string }[];
 }
 
 const courseNames: Record<string, string> = {
@@ -47,6 +48,7 @@ const StudentStatus = () => {
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState<any[]>([]);
+  const [pricing, setPricing] = useState<PricingPlan | null>(null);
 
   useEffect(() => {
     console.log('StudentStatus component mounted'); // Debug log
@@ -177,9 +179,29 @@ const StudentStatus = () => {
       }
 
       setStudent(student);
+      
+      // Calculate pricing based on minimum course fee
+      if (student && student.courses && student.courses.length > 0) {
+        const courseFees = student.courses
+          .map(c => c.fee ? parseFee(c.fee) : 0)
+          .filter(fee => fee > 0);
+        
+        if (courseFees.length > 0) {
+          const minFee = Math.min(...courseFees);
+          console.log('Course fees:', courseFees, 'Min fee:', minFee);
+          setPricing(calculatePricing(minFee));
+        } else {
+          // Default pricing if no course fees found
+          setPricing(calculatePricing(72000));
+        }
+      } else {
+        // Default pricing
+        setPricing(calculatePricing(72000));
+      }
     } catch (error) {
       console.error('Error loading student:', error);
       setStudent(null);
+      setPricing(calculatePricing(72000)); // Default pricing
     } finally {
       setLoading(false);
     }
@@ -230,8 +252,8 @@ const StudentStatus = () => {
     if (isFullPaymentDone()) return true;
     
     const totalPaid = getTotalPaid();
-    // Consider payment complete if paid >= 72000 (minimum full payment)
-    return totalPaid >= 72000;
+    // Consider payment complete if paid >= minimum required (full payment amount)
+    return pricing ? totalPaid >= pricing.fullPayment : totalPaid >= 72000;
   };
 
   // Check if any installment from a specific plan is paid
@@ -460,8 +482,10 @@ const StudentStatus = () => {
                       <p className="text-sm text-muted-foreground">Pay complete amount at once</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-bold text-primary">₹72,000</p>
-                      <p className="text-xs text-green-600 font-medium">Save ₹2,000</p>
+                      <p className="text-3xl font-bold text-primary">
+                        {pricing ? formatCurrency(pricing.fullPayment) : '₹72,000'}
+                      </p>
+                      <p className="text-xs text-green-600 font-medium">Best Value</p>
                     </div>
                   </div>
                   
@@ -474,7 +498,7 @@ const StudentStatus = () => {
                   ) : (
                     <>
                       <PaymentButton
-                        amount={72000}
+                        amount={pricing?.fullPayment || 72000}
                         studentId={student.id}
                         studentName={student.name}
                         studentMobile={student.mobile || ""}
@@ -506,10 +530,14 @@ const StudentStatus = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-foreground">2 Installments</h3>
-                        <p className="text-sm text-muted-foreground">₹40,000 + ₹34,000</p>
+                        <p className="text-sm text-muted-foreground">
+                          {pricing ? `${formatCurrency(pricing.twoInstallments[0])} + ${formatCurrency(pricing.twoInstallments[1])}` : '₹40,000 + ₹34,000'}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">₹74,000</p>
+                        <p className="text-2xl font-bold text-primary">
+                          {pricing ? formatCurrency(getInstallmentTotal(pricing, '2')) : '₹74,000'}
+                        </p>
                         <p className="text-xs text-muted-foreground">Total</p>
                       </div>
                     </div>
@@ -531,7 +559,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={40000}
+                                amount={pricing?.twoInstallments[0] || 40000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -563,7 +591,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={34000}
+                                amount={pricing?.twoInstallments[1] || 34000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -592,10 +620,14 @@ const StudentStatus = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-foreground">3 Installments</h3>
-                        <p className="text-sm text-muted-foreground">₹25,000 + ₹25,000 + ₹25,000</p>
+                        <p className="text-sm text-muted-foreground">
+                          {pricing ? `${formatCurrency(pricing.threeInstallments[0])} each` : '₹25,000 each'}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">₹75,000</p>
+                        <p className="text-2xl font-bold text-primary">
+                          {pricing ? formatCurrency(getInstallmentTotal(pricing, '3')) : '₹75,000'}
+                        </p>
                         <p className="text-xs text-muted-foreground">Total</p>
                       </div>
                     </div>
