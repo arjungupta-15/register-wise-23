@@ -121,7 +121,7 @@ const PaymentButton = ({
       
       // Create checkout instance
       const cashfree = Cashfree({
-        mode: 'sandbox' // Change to 'production' for live
+        mode: import.meta.env.VITE_CASHFREE_MODE || 'production' // Use env variable or default to production
       });
 
       // Open checkout
