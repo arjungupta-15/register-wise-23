@@ -84,7 +84,8 @@ const StudentStatus = () => {
               course_id,
               courses (
                 id,
-                name
+                name,
+                fee
               )
             )
           `)
@@ -119,7 +120,8 @@ const StudentStatus = () => {
               course_id,
               courses (
                 id,
-                name
+                name,
+                fee
               )
             )
           `)
