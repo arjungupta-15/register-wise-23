@@ -649,7 +649,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={25000}
+                                amount={pricing?.threeInstallments[0] || 25000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -681,7 +681,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={25000}
+                                amount={pricing?.threeInstallments[1] || 25000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -713,7 +713,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={25000}
+                                amount={pricing?.threeInstallments[2] || 25000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -742,10 +742,14 @@ const StudentStatus = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-foreground">4 Installments</h3>
-                        <p className="text-sm text-muted-foreground">₹20,000 each</p>
+                        <p className="text-sm text-muted-foreground">
+                          {pricing ? `${formatCurrency(pricing.fourInstallments[0])} each` : '₹20,000 each'}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">₹80,000</p>
+                        <p className="text-2xl font-bold text-primary">
+                          {pricing ? formatCurrency(getInstallmentTotal(pricing, '4')) : '₹80,000'}
+                        </p>
                         <p className="text-xs text-muted-foreground">Total</p>
                       </div>
                     </div>
@@ -767,7 +771,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={20000}
+                                amount={pricing?.fourInstallments[0] || 20000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -799,7 +803,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={20000}
+                                amount={pricing?.fourInstallments[1] || 20000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -831,7 +835,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={20000}
+                                amount={pricing?.fourInstallments[2] || 20000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
@@ -863,7 +867,7 @@ const StudentStatus = () => {
                               </div>
                             ) : (
                               <PaymentButton
-                                amount={20000}
+                                amount={pricing?.fourInstallments[3] || 20000}
                                 studentId={student.id}
                                 studentName={student.name}
                                 studentMobile={student.mobile || ""}
