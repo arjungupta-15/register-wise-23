@@ -6,8 +6,19 @@ export const cashfreeConfig = {
   mode: process.env.CASHFREE_MODE || 'sandbox'
 };
 
+// Add detailed logging
+console.log('🔧 Cashfree Config:', {
+  hasAppId: !!cashfreeConfig.appId,
+  hasSecretKey: !!cashfreeConfig.secretKey,
+  mode: cashfreeConfig.mode,
+  appIdPrefix: cashfreeConfig.appId?.substring(0, 10),
+  usingEnvVars: !!process.env.CASHFREE_APP_ID
+});
+
 export const getCashfreeUrl = () => {
-  return cashfreeConfig.mode === 'production' 
+  const url = cashfreeConfig.mode === 'production' 
     ? 'https://api.cashfree.com/pg' 
     : 'https://sandbox.cashfree.com/pg';
+  console.log('🌐 Cashfree URL:', url);
+  return url;
 };
