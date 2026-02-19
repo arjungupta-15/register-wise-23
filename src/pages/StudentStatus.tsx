@@ -184,20 +184,29 @@ const StudentStatus = () => {
       
       // Calculate pricing based on minimum course fee
       if (student && student.courses && student.courses.length > 0) {
+        console.log('📚 Student courses:', student.courses); // Debug
+        
         const courseFees = student.courses
-          .map(c => c.fee ? parseFee(c.fee) : 0)
+          .map(c => {
+            console.log('Course:', c.name, 'Fee string:', c.fee); // Debug
+            return c.fee ? parseFee(c.fee) : 0;
+          })
           .filter(fee => fee > 0);
+        
+        console.log('💰 Parsed course fees:', courseFees); // Debug
         
         if (courseFees.length > 0) {
           const minFee = Math.min(...courseFees);
-          console.log('Course fees:', courseFees, 'Min fee:', minFee);
-          setPricing(calculatePricing(minFee));
+          console.log('✅ Minimum fee:', minFee);
+          const calculatedPricing = calculatePricing(minFee);
+          console.log('💵 Calculated pricing:', calculatedPricing);
+          setPricing(calculatedPricing);
         } else {
-          // Default pricing if no course fees found
+          console.log('⚠️ No valid course fees found, using default');
           setPricing(calculatePricing(72000));
         }
       } else {
-        // Default pricing
+        console.log('⚠️ No courses found, using default pricing');
         setPricing(calculatePricing(72000));
       }
     } catch (error) {
