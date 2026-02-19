@@ -103,13 +103,23 @@ const AdminStudentDetail = () => {
         return;
       }
 
+      if (!data) {
+        toast({
+          title: "Error",
+          description: "Student not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Transform the data to include courses array
+      const studentData = data as any;
       const transformedStudent = {
-        ...data,
-        courses: data.student_courses?.map(sc => sc.courses).filter(Boolean) || []
+        ...studentData,
+        courses: studentData.student_courses?.map((sc: any) => sc.courses).filter(Boolean) || []
       };
 
-      setStudent(transformedStudent);
+      setStudent(transformedStudent as any);
       
       // Load payments for this student
       const { data: paymentsData } = await (supabase
@@ -139,8 +149,8 @@ const AdminStudentDetail = () => {
     
     setUpdating(true);
     try {
-      const { error } = await supabase
-        .from('students')
+      const { error } = await (supabase
+        .from('students') as any)
         .update({
           status,
           payment_status: status === "approved" ? "pending" : "pending"
