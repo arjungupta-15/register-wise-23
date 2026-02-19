@@ -119,22 +119,32 @@ const PaymentButton = ({
       // Load Cashfree SDK
       const Cashfree: any = await loadCashfree();
       
+      console.log('✅ Cashfree SDK loaded');
+      console.log('🔧 Mode from env:', import.meta.env.VITE_CASHFREE_MODE);
+      
       // Create checkout instance
+      const mode = import.meta.env.VITE_CASHFREE_MODE || 'sandbox';
+      console.log('🎯 Using mode:', mode);
+      
       const cashfree = Cashfree({
-        mode: import.meta.env.VITE_CASHFREE_MODE || 'production' // Use env variable or default to production
+        mode: mode
       });
 
+      console.log('💳 Opening checkout with session:', data.payment_session_id);
+
       // Open checkout
-      cashfree.checkout({
+      const checkoutResult = cashfree.checkout({
         paymentSessionId: data.payment_session_id,
         redirectTarget: '_modal'
       });
+      
+      console.log('🚀 Checkout result:', checkoutResult);
 
       // Keep the button hidden and show verify button instead
       // Don't reset isProcessing here
 
     } catch (error: any) {
-      console.error('Payment error:', error);
+      console.error('❌ Payment error:', error);
       toast({
         title: "Payment Failed",
         description: error.message || "Failed to process payment. Please try again.",

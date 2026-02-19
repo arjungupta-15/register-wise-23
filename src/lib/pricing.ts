@@ -7,9 +7,19 @@ export interface PricingPlan {
   fourInstallments: [number, number, number, number];
 }
 
-// Parse fee string to number (e.g., "₹5,000" -> 5000)
+// Parse fee string to number (e.g., "₹5,000" -> 5000, "₹96,000" -> 96000, "96000" -> 96000)
 export const parseFee = (feeString: string): number => {
-  return parseInt(feeString.replace(/[₹,]/g, '').trim()) || 0;
+  if (!feeString) return 0;
+  
+  // Remove all non-numeric characters except decimal point
+  const cleanedString = feeString.toString().replace(/[^0-9.]/g, '');
+  
+  // Parse to number
+  const parsed = parseFloat(cleanedString);
+  
+  console.log('🔢 Parsing fee:', feeString, '→', parsed);
+  
+  return isNaN(parsed) ? 0 : Math.round(parsed);
 };
 
 // Calculate pricing based on minimum course fee

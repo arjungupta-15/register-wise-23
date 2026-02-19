@@ -12,7 +12,14 @@ console.log('🔧 Cashfree Config:', {
   hasSecretKey: !!cashfreeConfig.secretKey,
   mode: cashfreeConfig.mode,
   appIdPrefix: cashfreeConfig.appId?.substring(0, 10),
-  usingEnvVars: !!process.env.CASHFREE_APP_ID
+  usingEnvVars: !!process.env.CASHFREE_APP_ID,
+  envVarValue: process.env.CASHFREE_MODE || 'NOT_SET'
+});
+
+console.log('📋 All Cashfree Env Vars:', {
+  CASHFREE_APP_ID: process.env.CASHFREE_APP_ID ? 'SET' : 'NOT_SET',
+  CASHFREE_SECRET_KEY: process.env.CASHFREE_SECRET_KEY ? 'SET' : 'NOT_SET',
+  CASHFREE_MODE: process.env.CASHFREE_MODE || 'NOT_SET'
 });
 
 export const getCashfreeUrl = () => {
