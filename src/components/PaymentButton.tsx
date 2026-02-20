@@ -64,7 +64,7 @@ const PaymentButton = ({
 
       const data = await response.json();
       console.log('API Response:', data);
-
+      
       if (!data.success) {
         throw new Error(data.error || 'Failed to create payment session');
       }

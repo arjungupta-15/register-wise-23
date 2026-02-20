@@ -326,6 +326,20 @@ const StudentStatus = () => {
     return false;
   };
 
+  // Get installment amount for display
+  const getInstallmentAmount = (plan: '2' | '3' | '4', installmentNumber: number): number => {
+    if (!pricing) return 0;
+    
+    switch (plan) {
+      case '2':
+        return pricing.twoInstallments[installmentNumber - 1] || 0;
+      case '3':
+        return pricing.threeInstallments[installmentNumber - 1] || 0;
+      case '4':
+        return pricing.fourInstallments[installmentNumber - 1] || 0;
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("studentAuth");
     localStorage.removeItem("currentStudentId");
@@ -566,7 +580,7 @@ const StudentStatus = () => {
                             {isInstallmentPaid(1) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-sm font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹40,000</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('2', 1))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -580,7 +594,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "1st Installment Paid!",
-                                    description: "₹40,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('2', 1))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -593,12 +607,12 @@ const StudentStatus = () => {
                             {isInstallmentPaid(2) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-sm font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹34,000</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('2', 2))}</p>
                               </div>
                             ) : isInstallmentButtonDisabled('2-installment', 2) ? (
                               <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
                                 <p className="text-sm text-gray-500">Pay 1st First</p>
-                                <p className="text-xs text-gray-400">₹34,000</p>
+                                <p className="text-xs text-gray-400">{formatCurrency(getInstallmentAmount('2', 2))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -612,7 +626,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "2nd Installment Paid!",
-                                    description: "₹34,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('2', 2))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -656,7 +670,7 @@ const StudentStatus = () => {
                             {isInstallmentPaid(1) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-xs font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹25K</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('3', 1))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -670,7 +684,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "1st Installment Paid!",
-                                    description: "₹25,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('3', 1))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -683,12 +697,12 @@ const StudentStatus = () => {
                             {isInstallmentPaid(2) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-xs font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹25K</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('3', 2))}</p>
                               </div>
                             ) : isInstallmentButtonDisabled('3-installment', 2) ? (
                               <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
                                 <p className="text-xs text-gray-500">Pay 1st</p>
-                                <p className="text-xs text-gray-400">₹25K</p>
+                                <p className="text-xs text-gray-400">{formatCurrency(getInstallmentAmount('3', 2))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -702,7 +716,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "2nd Installment Paid!",
-                                    description: "₹25,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('3', 2))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -715,12 +729,12 @@ const StudentStatus = () => {
                             {isInstallmentPaid(3) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-xs font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹25K</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('3', 3))}</p>
                               </div>
                             ) : isInstallmentButtonDisabled('3-installment', 3) ? (
                               <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
                                 <p className="text-xs text-gray-500">Pay 2nd</p>
-                                <p className="text-xs text-gray-400">₹25K</p>
+                                <p className="text-xs text-gray-400">{formatCurrency(getInstallmentAmount('3', 3))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -734,7 +748,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "3rd Installment Paid!",
-                                    description: "₹25,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('3', 3))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -778,7 +792,7 @@ const StudentStatus = () => {
                             {isInstallmentPaid(1) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-sm font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹20,000</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('4', 1))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -792,7 +806,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "1st Installment Paid!",
-                                    description: "₹20,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('4', 1))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -805,12 +819,12 @@ const StudentStatus = () => {
                             {isInstallmentPaid(2) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-sm font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹20,000</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('4', 2))}</p>
                               </div>
                             ) : isInstallmentButtonDisabled('4-installment', 2) ? (
                               <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
                                 <p className="text-sm text-gray-500">Pay 1st First</p>
-                                <p className="text-xs text-gray-400">₹20,000</p>
+                                <p className="text-xs text-gray-400">{formatCurrency(getInstallmentAmount('4', 2))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -824,7 +838,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "2nd Installment Paid!",
-                                    description: "₹20,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('4', 2))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -837,12 +851,12 @@ const StudentStatus = () => {
                             {isInstallmentPaid(3) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-sm font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹20,000</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('4', 3))}</p>
                               </div>
                             ) : isInstallmentButtonDisabled('4-installment', 3) ? (
                               <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
                                 <p className="text-sm text-gray-500">Pay 2nd First</p>
-                                <p className="text-xs text-gray-400">₹20,000</p>
+                                <p className="text-xs text-gray-400">{formatCurrency(getInstallmentAmount('4', 3))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -856,7 +870,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "3rd Installment Paid!",
-                                    description: "₹20,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('4', 3))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
@@ -869,12 +883,12 @@ const StudentStatus = () => {
                             {isInstallmentPaid(4) ? (
                               <div className="text-center py-3 bg-green-50 border border-green-200 rounded">
                                 <p className="text-sm font-semibold text-green-800">✓ Paid</p>
-                                <p className="text-xs text-green-600">₹20,000</p>
+                                <p className="text-xs text-green-600">{formatCurrency(getInstallmentAmount('4', 4))}</p>
                               </div>
                             ) : isInstallmentButtonDisabled('4-installment', 4) ? (
                               <div className="text-center py-3 bg-gray-50 border border-gray-200 rounded opacity-50">
                                 <p className="text-sm text-gray-500">Pay 3rd First</p>
-                                <p className="text-xs text-gray-400">₹20,000</p>
+                                <p className="text-xs text-gray-400">{formatCurrency(getInstallmentAmount('4', 4))}</p>
                               </div>
                             ) : (
                               <PaymentButton
@@ -888,7 +902,7 @@ const StudentStatus = () => {
                                 onSuccess={() => {
                                   toast({
                                     title: "4th Installment Paid!",
-                                    description: "₹20,000 payment successful.",
+                                    description: `${formatCurrency(getInstallmentAmount('4', 4))} payment successful.`,
                                   });
                                   const authData = JSON.parse(localStorage.getItem("studentAuth") || "{}");
                                   const currentStudentId = localStorage.getItem("currentStudentId");
