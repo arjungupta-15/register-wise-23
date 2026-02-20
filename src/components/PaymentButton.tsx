@@ -38,9 +38,10 @@ const PaymentButton = ({
       const orderId = generateOrderId();
       
       // Determine API URL based on environment
+      // For Hostinger frontend calling Vercel backend
       const apiUrl = window.location.hostname === 'localhost' 
         ? `${window.location.origin}/api`  // Use same origin for local dev
-        : '/api';  // Production (Vercel)
+        : 'https://tareducations.vercel.app/api';  // Vercel backend
       
       console.log('API URL:', apiUrl);
       console.log('Calling create-payment API...');
@@ -122,8 +123,8 @@ const PaymentButton = ({
       console.log('✅ Cashfree SDK loaded');
       console.log('🔧 Mode from env:', import.meta.env.VITE_CASHFREE_MODE);
       
-      // Create checkout instance - Force production mode
-      const mode = 'production'; // Temporarily hardcoded for production
+      // Create checkout instance - Production mode (domain approved)
+      const mode = import.meta.env.VITE_CASHFREE_MODE || 'production';
       console.log('🎯 Using mode:', mode);
       
       const cashfree = Cashfree({

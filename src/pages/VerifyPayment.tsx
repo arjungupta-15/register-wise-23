@@ -44,7 +44,7 @@ const VerifyPayment = () => {
       // Call backend API to verify payment
       const apiUrl = window.location.hostname === 'localhost' 
         ? `${window.location.origin}/api`
-        : '/api';
+        : 'https://tareducations.vercel.app/api';  // Vercel backend
 
       const response = await fetch(`${apiUrl}/verify-payment`, {
         method: 'POST',
