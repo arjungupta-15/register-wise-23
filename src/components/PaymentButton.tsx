@@ -27,11 +27,10 @@ const PaymentButton = ({
   onSuccess
 }: PaymentButtonProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentInitiated, setPaymentInitiated] = useState(false);
+  const [showVerifyButton, setShowVerifyButton] = useState(false);
 
   const handlePayment = async () => {
     setIsProcessing(true);
-    setPaymentInitiated(true);
 
     try {
       // Generate unique order ID
@@ -133,16 +132,32 @@ const PaymentButton = ({
 
       console.log('💳 Opening checkout with session:', data.payment_session_id);
 
-      // Open checkout
+      // Open checkout with callback handlers
       const checkoutResult = cashfree.checkout({
         paymentSessionId: data.payment_session_id,
-        redirectTarget: '_modal'
+        redirectTarget: '_modal',
+        onSuccess: (data: any) => {
+          console.log('✅ Payment successful:', data);
+          // Show verify button after successful payment
+          setShowVerifyButton(true);
+          setIsProcessing(false);
+          toast({
+            title: "Payment Completed!",
+            description: "Click 'Verify Payment' to confirm your payment.",
+          });
+        },
+        onFailure: (error: any) => {
+          console.error('❌ Payment failed:', error);
+          setIsProcessing(false);
+          toast({
+            title: "Payment Failed",
+            description: "Payment was not completed. Please try again.",
+            variant: "destructive"
+          });
+        }
       });
       
       console.log('🚀 Checkout result:', checkoutResult);
-
-      // Keep the button hidden and show verify button instead
-      // Don't reset isProcessing here
 
     } catch (error: any) {
       console.error('❌ Payment error:', error);
@@ -152,21 +167,20 @@ const PaymentButton = ({
         variant: "destructive"
       });
       setIsProcessing(false);
-      setPaymentInitiated(false);
     }
   };
 
-  // If payment initiated, show verify button instead
-  if (paymentInitiated) {
+  // If payment completed successfully, show verify button
+  if (showVerifyButton) {
     return (
       <Button
         onClick={() => window.location.href = '/payment/verify'}
-        variant="outline"
-        className="w-full"
+        variant="default"
+        className="w-full bg-green-600 hover:bg-green-700"
         size="lg"
       >
         <CheckCircle className="h-4 w-4 mr-2" />
-        Verify Payment Manually
+        Verify Payment
       </Button>
     );
   }
