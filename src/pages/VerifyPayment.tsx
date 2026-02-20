@@ -46,6 +46,8 @@ const VerifyPayment = () => {
         ? `${window.location.origin}/api`
         : 'https://tareducations.vercel.app/api';  // Vercel backend
 
+      console.log('📞 Calling API:', `${apiUrl}/verify-payment`);
+
       const response = await fetch(`${apiUrl}/verify-payment`, {
         method: 'POST',
         headers: {
@@ -53,6 +55,17 @@ const VerifyPayment = () => {
         },
         body: JSON.stringify({ orderId: orderId.trim() })
       });
+
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', response.headers.get('content-type'));
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ Non-JSON response:', text.substring(0, 200));
+        throw new Error('Server configuration error. Please contact support with your Order ID.');
+      }
 
       if (!response.ok) {
         throw new Error(`API returned ${response.status}`);

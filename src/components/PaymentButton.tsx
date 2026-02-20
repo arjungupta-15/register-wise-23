@@ -27,7 +27,6 @@ const PaymentButton = ({
   onSuccess
 }: PaymentButtonProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showVerifyButton, setShowVerifyButton] = useState(false);
 
   const handlePayment = async () => {
     setIsProcessing(true);
@@ -132,30 +131,27 @@ const PaymentButton = ({
 
       console.log('💳 Opening checkout with session:', data.payment_session_id);
 
-      // Reset processing state after modal opens (so button doesn't stay stuck)
+      // Reset processing state after modal opens
       setTimeout(() => {
         setIsProcessing(false);
-        setShowVerifyButton(true);
-      }, 2000); // Give 2 seconds for modal to open
+      }, 2000);
 
-      // Open checkout with callback handlers
+      // Open checkout - redirect to success page after completion
       cashfree.checkout({
         paymentSessionId: data.payment_session_id,
         redirectTarget: '_modal'
-      }).then((result: any) => {
-        console.log('✅ Checkout completed:', result);
-        // Show verify button after modal closes
-        setShowVerifyButton(true);
-        setIsProcessing(false);
-        toast({
-          title: "Payment Process Completed",
-          description: "Please verify your payment status below.",
-        });
+      }).then(() => {
+        // Payment modal closed - redirect to success page
+        console.log('✅ Payment modal closed, redirecting to success page');
+        window.location.href = `/payment/success?order_id=${data.order_id}`;
       }).catch((error: any) => {
         console.error('❌ Checkout error:', error);
-        // Even on error, show verify button so user can check status
-        setShowVerifyButton(true);
         setIsProcessing(false);
+        toast({
+          title: "Payment Error",
+          description: "There was an issue with the payment. Please try again.",
+          variant: "destructive"
+        });
       });
       
       console.log('🚀 Checkout initiated');
@@ -171,26 +167,6 @@ const PaymentButton = ({
     }
   };
 
-  // If payment completed successfully, show verify button
-  if (showVerifyButton) {
-    return (
-      <div className="space-y-3">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-          💡 Payment process completed. Click below to verify your payment status.
-        </div>
-        <Button
-          onClick={() => window.location.href = '/payment/verify'}
-          variant="default"
-          className="w-full bg-green-600 hover:bg-green-700"
-          size="lg"
-        >
-          <CheckCircle className="h-4 w-4 mr-2" />
-          Verify Payment Status
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <Button
       onClick={handlePayment}
@@ -201,7 +177,7 @@ const PaymentButton = ({
       {isProcessing ? (
         <>
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          Redirecting to Payment...
+          Opening Payment Gateway...
         </>
       ) : (
         <>
