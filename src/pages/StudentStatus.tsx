@@ -292,15 +292,31 @@ const StudentStatus = () => {
     // Check amounts against pricing to determine plan
     const firstAmount = parseFloat(paidInstallments[0].amount);
     
+    console.log('🔍 Detecting active plan:');
+    console.log('  First payment amount:', firstAmount);
+    console.log('  2-inst first:', pricing.twoInstallments[0]);
+    console.log('  3-inst first:', pricing.threeInstallments[0]);
+    console.log('  4-inst first:', pricing.fourInstallments[0]);
+    
     // Check 2 installments (with tolerance for rounding)
-    if (Math.abs(firstAmount - pricing.twoInstallments[0]) < 10) return '2-installment';
+    if (Math.abs(firstAmount - pricing.twoInstallments[0]) < 10) {
+      console.log('✅ Detected: 2-installment plan');
+      return '2-installment';
+    }
     
     // Check 3 installments
-    if (Math.abs(firstAmount - pricing.threeInstallments[0]) < 10) return '3-installment';
+    if (Math.abs(firstAmount - pricing.threeInstallments[0]) < 10) {
+      console.log('✅ Detected: 3-installment plan');
+      return '3-installment';
+    }
     
     // Check 4 installments
-    if (Math.abs(firstAmount - pricing.fourInstallments[0]) < 10) return '4-installment';
+    if (Math.abs(firstAmount - pricing.fourInstallments[0]) < 10) {
+      console.log('✅ Detected: 4-installment plan');
+      return '4-installment';
+    }
     
+    console.log('❌ Could not detect plan');
     return null;
   };
 
