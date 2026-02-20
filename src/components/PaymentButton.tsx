@@ -132,32 +132,33 @@ const PaymentButton = ({
 
       console.log('💳 Opening checkout with session:', data.payment_session_id);
 
+      // Reset processing state after modal opens (so button doesn't stay stuck)
+      setTimeout(() => {
+        setIsProcessing(false);
+        setShowVerifyButton(true);
+      }, 2000); // Give 2 seconds for modal to open
+
       // Open checkout with callback handlers
-      const checkoutResult = cashfree.checkout({
+      cashfree.checkout({
         paymentSessionId: data.payment_session_id,
-        redirectTarget: '_modal',
-        onSuccess: (data: any) => {
-          console.log('✅ Payment successful:', data);
-          // Show verify button after successful payment
-          setShowVerifyButton(true);
-          setIsProcessing(false);
-          toast({
-            title: "Payment Completed!",
-            description: "Click 'Verify Payment' to confirm your payment.",
-          });
-        },
-        onFailure: (error: any) => {
-          console.error('❌ Payment failed:', error);
-          setIsProcessing(false);
-          toast({
-            title: "Payment Failed",
-            description: "Payment was not completed. Please try again.",
-            variant: "destructive"
-          });
-        }
+        redirectTarget: '_modal'
+      }).then((result: any) => {
+        console.log('✅ Checkout completed:', result);
+        // Show verify button after modal closes
+        setShowVerifyButton(true);
+        setIsProcessing(false);
+        toast({
+          title: "Payment Process Completed",
+          description: "Please verify your payment status below.",
+        });
+      }).catch((error: any) => {
+        console.error('❌ Checkout error:', error);
+        // Even on error, show verify button so user can check status
+        setShowVerifyButton(true);
+        setIsProcessing(false);
       });
       
-      console.log('🚀 Checkout result:', checkoutResult);
+      console.log('🚀 Checkout initiated');
 
     } catch (error: any) {
       console.error('❌ Payment error:', error);
@@ -173,15 +174,20 @@ const PaymentButton = ({
   // If payment completed successfully, show verify button
   if (showVerifyButton) {
     return (
-      <Button
-        onClick={() => window.location.href = '/payment/verify'}
-        variant="default"
-        className="w-full bg-green-600 hover:bg-green-700"
-        size="lg"
-      >
-        <CheckCircle className="h-4 w-4 mr-2" />
-        Verify Payment
-      </Button>
+      <div className="space-y-3">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+          💡 Payment process completed. Click below to verify your payment status.
+        </div>
+        <Button
+          onClick={() => window.location.href = '/payment/verify'}
+          variant="default"
+          className="w-full bg-green-600 hover:bg-green-700"
+          size="lg"
+        >
+          <CheckCircle className="h-4 w-4 mr-2" />
+          Verify Payment Status
+        </Button>
+      </div>
     );
   }
 
