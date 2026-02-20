@@ -1,14 +1,17 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://tarseducation.in/sitemap.xml
+
+# Disallow admin pages from search engines
+Disallow: /admin/
+Disallow: /student/status
+Disallow: /payment/
+
+# Allow important pages
+Allow: /
+Allow: /register
+Allow: /student/login
+Allow: /contact
+
