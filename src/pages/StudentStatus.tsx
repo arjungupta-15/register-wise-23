@@ -281,16 +281,26 @@ const StudentStatus = () => {
     );
   };
 
-  // Get the installment plan being used (based on amounts)
+  // Get the installment plan being used (based on payment count and pricing)
   const getActiveInstallmentPlan = () => {
     const paidInstallments = getPaidInstallments();
     if (paidInstallments.length === 0) return null;
     
-    // Check amounts to determine plan
+    // Check if we have pricing data
+    if (!pricing) return null;
+    
+    // Check amounts against pricing to determine plan
     const firstAmount = parseFloat(paidInstallments[0].amount);
-    if (firstAmount === 40000) return '2-installment';
-    if (firstAmount === 25000) return '3-installment';
-    if (firstAmount === 20000) return '4-installment';
+    
+    // Check 2 installments (with tolerance for rounding)
+    if (Math.abs(firstAmount - pricing.twoInstallments[0]) < 10) return '2-installment';
+    
+    // Check 3 installments
+    if (Math.abs(firstAmount - pricing.threeInstallments[0]) < 10) return '3-installment';
+    
+    // Check 4 installments
+    if (Math.abs(firstAmount - pricing.fourInstallments[0]) < 10) return '4-installment';
+    
     return null;
   };
 
@@ -492,9 +502,11 @@ const StudentStatus = () => {
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-blue-600 mt-1">
-                        Minimum required: ₹72,000
-                      </p>
+                      {pricing && !isPaymentComplete() && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          Remaining: {formatCurrency(pricing.fullPayment - getTotalPaid())}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
