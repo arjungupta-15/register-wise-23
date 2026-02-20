@@ -93,7 +93,7 @@ const CourseSelection = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Label className="text-base font-medium">Select Courses (Select exactly 2 courses from any centers) *</Label>
+        <Label className="text-base font-medium">Select Courses (Select exactly 2 Courses from any centers) *</Label>
         <span className={`text-sm font-medium ${
           selectedCourses.length === 2 ? "text-green-600" : 
           selectedCourses.length > 2 ? "text-red-600" : "text-muted-foreground"
