@@ -23,6 +23,24 @@ export default async function handler(req, res) {
       throw new Error('Missing required fields');
     }
 
+    // Validate amount (Cashfree production limit check)
+    const MAX_AMOUNT = 100000; // ₹1,00,000 - adjust based on your Cashfree limit
+    if (amount > MAX_AMOUNT) {
+      console.error(`Amount ${amount} exceeds maximum limit ${MAX_AMOUNT}`);
+      return res.status(400).json({
+        success: false,
+        error: `Payment amount ₹${amount} exceeds the maximum limit of ₹${MAX_AMOUNT}. Please contact support to increase your limit or pay in installments.`
+      });
+    }
+
+    // Minimum amount check
+    if (amount < 1) {
+      return res.status(400).json({
+        success: false,
+        error: 'Payment amount must be at least ₹1'
+      });
+    }
+
     // Get Cashfree credentials from config
     const cashfreeAppId = cashfreeConfig.appId;
     const cashfreeSecretKey = cashfreeConfig.secretKey;

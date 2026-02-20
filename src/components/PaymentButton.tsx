@@ -136,22 +136,32 @@ const PaymentButton = ({
         setIsProcessing(false);
       }, 2000);
 
-      // Open checkout - redirect to success page after completion
+      // Open checkout with proper event handlers
       cashfree.checkout({
         paymentSessionId: data.payment_session_id,
-        redirectTarget: '_modal'
-      }).then(() => {
-        // Payment modal closed - redirect to success page
-        console.log('✅ Payment modal closed, redirecting to success page');
-        window.location.href = `/payment/success?order_id=${data.order_id}`;
-      }).catch((error: any) => {
-        console.error('❌ Checkout error:', error);
-        setIsProcessing(false);
-        toast({
-          title: "Payment Error",
-          description: "There was an issue with the payment. Please try again.",
-          variant: "destructive"
-        });
+        redirectTarget: '_modal',
+        onSuccess: function(data: any) {
+          // Payment successful
+          console.log('✅ Payment successful:', data);
+          toast({
+            title: "Payment Successful!",
+            description: "Redirecting to receipt page...",
+          });
+          // Redirect to success page
+          setTimeout(() => {
+            window.location.href = `/payment/success?order_id=${orderId}`;
+          }, 1000);
+        },
+        onFailure: function(data: any) {
+          // Payment failed
+          console.log('❌ Payment failed:', data);
+          setIsProcessing(false);
+          toast({
+            title: "Payment Failed",
+            description: "Payment was not completed. Please try again.",
+            variant: "destructive"
+          });
+        }
       });
       
       console.log('🚀 Checkout initiated');
