@@ -122,8 +122,8 @@ const PaymentButton = ({
       console.log('✅ Cashfree SDK loaded');
       console.log('🔧 Mode from env:', import.meta.env.VITE_CASHFREE_MODE);
       
-      // Create checkout instance
-      const mode = import.meta.env.VITE_CASHFREE_MODE || 'sandbox';
+      // Create checkout instance - Force production mode
+      const mode = 'production'; // Temporarily hardcoded for production
       console.log('🎯 Using mode:', mode);
       
       const cashfree = Cashfree({
